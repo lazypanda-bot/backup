@@ -1,0 +1,71 @@
+.admin-navbar {
+    position: fixed;
+    top: 0;
+    left: 260px;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    min-height: 72px;
+    padding: 0 1.5rem;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.admin-navbar-left,
+.admin-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-navbar-right {
+    margin-right: 2rem;
+}
+
+.admin-navbar-logo img {
+    max-height: 48px;
+    width: auto;
+    display: block;
+}
+
+.admin-navbar-button {
+    border: none;
+    background: var(--color-primary-soft);
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    cursor: pointer;
+    color: var(--color-primary-dark);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.admin-navbar-button:hover,
+.admin-navbar-button:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.1);
+}
+
+.admin-navbar-icon {
+    width: 30px;
+    height: 30px;
+}
+
+/* When sidebar is collapsed, shift navbar left */
+.admin-sidebar.collapsed ~ .admin-main-wrapper .admin-navbar {
+    left: 85px;
+}
+
+@media (max-width: 1024px) {
+    .admin-navbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+    }
+}

@@ -1,0 +1,55 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('appointmentCancelModal');
+    if (!modal) return;
+
+    const dialog = modal.querySelector('.appointment-cancel-dialog');
+    const form = modal.querySelector('[data-cancel-form]');
+    const context = modal.querySelector('[data-cancel-context]');
+    const reason = modal.querySelector('textarea[name="cancellation_reason"]');
+    let opener = null;
+
+    const closeModal = () => {
+        modal.hidden = true;
+        form?.reset();
+        opener?.focus();
+        opener = null;
+    };
+
+    const openModal = (trigger, action, label) => {
+        opener = trigger;
+        if (form) form.action = action || '';
+        if (context) context.textContent = label || 'Selected appointment';
+        modal.hidden = false;
+        reason?.focus();
+    };
+
+    document.addEventListener('change', (event) => {
+        const select = event.target instanceof Element ? event.target.closest('select[data-cancel-select]') : null;
+        if (!select || select.value !== 'Cancelled') return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openModal(select, select.dataset.cancelAction || select.form?.action || '', select.dataset.cancelContext || '');
+        select.value = '';
+    }, true);
+
+    document.querySelectorAll('[data-cancel-appointment]').forEach((button) => {
+        button.addEventListener('click', () => {
+            openModal(button, button.dataset.action || '', button.dataset.context || '');
+        });
+    });
+
+    modal.querySelectorAll('[data-cancel-dismiss]').forEach((button) => {
+        button.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    dialog?.addEventListener('click', (event) => event.stopPropagation());
+});
