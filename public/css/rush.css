@@ -1,12 +1,13 @@
 /* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .rush-properties-section {
-    padding: 40px 20px 20px;
+    padding: 40px var(--home-panel-gutter) 20px;
     background-color: var(--color-body);
     font-family: system-ui, -apple-system, sans-serif;
 }
 
 .rush-container {
-    max-width: 1300px;
+    width: 100%;
+    max-width: var(--home-panel-max-width);
     padding: 26px;
     margin: 0 auto;
     border: 1px solid #e2e8f0;

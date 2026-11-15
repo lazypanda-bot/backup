@@ -31,9 +31,9 @@
             <div class="map-toolbar">
                 <div class="map-search-box">
                     <span><i class="fas fa-magnifying-glass" aria-hidden="true"></i></span>
-                                <input id="mapSearchInput" type="search" placeholder="Search location, city, or area">
+                    <input id="mapSearchInput" type="search" placeholder="Search location, city, or area">
                 </div>
-                            <button type="button" id="mapSearchButton" class="map-search-btn">Search</button>
+                <button type="button" id="mapSearchButton" class="map-search-btn">Search</button>
             </div>
 
             <div class="map-container-wrapper">

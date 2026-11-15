@@ -294,7 +294,7 @@
 
 @media (max-width: 760px) {
     .rush-properties-section {
-        padding: 28px 16px 12px;
+        padding: 28px var(--home-panel-gutter) 12px;
     }
     .rush-container {
         padding: 16px;
@@ -510,7 +510,7 @@
         width: 100%;
     }
     .landing-page .home-professionals-section {
-        padding: 12px 12px 24px;
+        padding: 12px var(--home-panel-gutter) 24px;
     }
     .home-professionals-section .top-agents-container {
         padding: 16px;
@@ -1602,8 +1602,9 @@
 .sidebar-toggle, .sidebar-backdrop { display: none; }
 
 @media (max-width: 1024px) {
+    :root { --home-panel-gutter: 52px; }
     .hero-section { padding-right: 40px; padding-left: 40px; }
-    .map-search-section { padding: 32px 16px 0; }
+    .map-search-section { padding: 32px var(--home-panel-gutter) 0; }
     .properties { padding-right: 24px; padding-left: 24px; }
     .properties-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
     .dashboard-grid { grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); }
@@ -1615,6 +1616,7 @@
 }
 
 @media (max-width: 768px) {
+    :root { --home-panel-gutter: 16px; }
     /* Public client navigation becomes a compact, keyboard-operable dropdown. */
     .landing-nav { height: 68px; min-height: 68px; }
     .logo-container { position: relative; min-width: 0; min-height: 68px; gap: 10px; padding: 0 14px; }
@@ -1718,6 +1720,7 @@
 }
 
 @media (max-width: 520px) {
+    :root { --home-panel-gutter: 12px; }
     .logo-container { padding-right: 10px; padding-left: 10px; }
     .landing-img { width: 56px; height: 54px; }
     .logo-container .right { gap: 7px; }
@@ -1729,7 +1732,7 @@
     .footer-logo { height: 40px; }
     .hero-section { min-height: 76vh; min-height: 76svh; padding: 96px 22px 40px; }
     .hero-content { max-width: 100%; }
-    .map-search-section { padding: 24px 12px 0; }
+    .map-search-section { padding: 24px var(--home-panel-gutter) 0; }
     .properties { padding: 84px 12px 44px; }
     .properties .media { height: 180px; }
     .properties .lifestyle-content { padding: 20px 18px 22px; }
@@ -1742,7 +1745,7 @@
     .map-search-btn { height: 40px; padding: 0 12px; }
     .map-container-wrapper { min-height: 320px; }
     .property-map { min-height: 320px; }
-    .top-agents-section { padding: 84px 12px 12px; }
+    .top-agents-section { padding: 84px var(--home-panel-gutter) 12px; }
     .agents-directory-section { padding: 84px 12px 44px; }
     .properties { padding-top: 84px; }
     .top-agents-container { padding: 16px; }

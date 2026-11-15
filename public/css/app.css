@@ -1,4 +1,9 @@
 /* Responsive rules for this stylesheet are in public/css/responsive.css. */
+:root {
+    --home-panel-max-width: 1700px;
+    --home-panel-gutter: clamp(52px, 3.5vw, 64px);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -88,10 +93,11 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 .map-search-section {
-    padding: 40px 20px 0;
+    padding: 40px var(--home-panel-gutter) 0;
 }
 .map-shell {
-    max-width: 1300px;
+    width: 100%;
+    max-width: var(--home-panel-max-width);
     margin-inline: auto;
     background: var(--color-surface);
     border: 1px solid rgba(148, 163, 184, 0.3);

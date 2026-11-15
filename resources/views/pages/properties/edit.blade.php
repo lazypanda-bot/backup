@@ -92,16 +92,26 @@
 
             <section class="property-edit-section" aria-labelledby="editImagesHeading">
                 <div class="property-edit-section-heading"><span>04</span><div><h2 id="editImagesHeading">Property photos</h2><p>Choose photos to remove or add new images. Maximum 12 photos total.</p></div></div>
-                @if ($property->images->isNotEmpty())
-                    <div class="property-edit-gallery">
-                        @foreach ($property->images as $image)
-                            <label class="property-edit-image"><img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $property->property_name }} photo"><span><input type="checkbox" name="remove_images[]" value="{{ $image->image_id }}"> Remove</span></label>
-                        @endforeach
-                    </div>
-                @else
+                @if ($property->images->isEmpty())
                     <p class="property-edit-no-images">No photos uploaded yet.</p>
                 @endif
-                <label class="property-edit-upload"><i class="fas fa-cloud-arrow-up" aria-hidden="true"></i><span>Add photos</span><input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple><small>JPG, PNG, or WebP; 2 MB each.</small></label>
+                <div class="property-edit-gallery">
+                    @foreach ($property->images as $image)
+                        <label class="property-edit-image"><img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $property->property_name }} photo"><span><input type="checkbox" name="remove_images[]" value="{{ $image->image_id }}"> Remove</span></label>
+                    @endforeach
+                    <label class="property-edit-image property-edit-add-image" title="Add photos">
+                        <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple aria-label="Add property photos">
+                        <span class="property-edit-add-image-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <path d="m21 15-5-5L5 21"></path>
+                            </svg>
+                            <span class="property-edit-add-image-badge"></span>
+                        </span>
+                    </label>
+                </div>
+                <p class="property-edit-upload-help">JPG, PNG, or WebP; 2 MB each.</p>
                 @error('images')<small class="property-edit-error">{{ $message }}</small>@enderror
                 @error('images.*')<small class="property-edit-error">{{ $message }}</small>@enderror
             </section>
