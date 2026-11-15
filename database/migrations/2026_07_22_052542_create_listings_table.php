@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('posted_by')->constrained('users')->onDelete('cascade');
+            $table->unsignedBigInteger('posted_by');
             $table->boolean('is_open')->default(false);
             $table->enum('approval_status', ['approved', 'pending', 'rejected'])->default('pending');
             $table->text('rejection_reason')->nullable();
@@ -36,7 +36,6 @@ return new class extends Migration
             $table->decimal('longitude', 10, 7)->nullable();
             $table->timestamps();
 
-            $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
             $table->foreign('duplicate_of')->references('id')->on('listings')->onDelete('set null');
         });
     }

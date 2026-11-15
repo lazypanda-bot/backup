@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,10 +9,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('appointments', function (Blueprint $table) {
-            $table->dateTime('start_at')->nullable()->after('id');
-            $table->dateTime('end_at')->nullable()->after('start_at');
-        });
+        // The canonical appointments table is created after this legacy migration.
     }
 
     /**
@@ -22,8 +17,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('appointments', function (Blueprint $table) {
-            $table->dropColumn(['start_at', 'end_at']);
-        });
+        // No changes were made by this legacy migration.
     }
 };

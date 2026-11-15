@@ -94,3 +94,15 @@ Build production assets with `npm run build`. Check dependencies with `composer 
 ## Configuration notes
 
 Profile photos and property images use Laravel's public disk. Message attachments use private local storage and can be downloaded only by conversation participants. Professional credential documents are stored on the private local disk and can be downloaded only by an Admin. New staff accounts receive an initial password from the Admin and can change it from Settings. For production email delivery, set `MAIL_MAILER=smtp` and provide `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`; set `CONTACT_EMAIL` to the address that should receive website inquiries and optionally define `COMPANY_*` values for the public footer and contact page.
+
+## Google Cloud Run demo deployment
+
+The root `Dockerfile` builds the Vite assets and runs Apache with Laravel's `public/` directory as the document root. `.dockerignore` excludes local environment files, uploaded files, the local SQLite database, and development dependencies from the image; `.gcloudignore` excludes the same sensitive and generated files from the source upload to Cloud Build.
+
+For Cloud Run, use a MySQL Cloud SQL instance and attach it to the service. Set `DB_CONNECTION=mysql`, `DB_HOST=localhost`, `DB_PORT=3306`, `DB_DATABASE`, `DB_USERNAME`, and `DB_SOCKET=/cloudsql/<INSTANCE_CONNECTION_NAME>`. Grant the Cloud Run service account the Cloud SQL Client role.
+
+Mount a private Cloud Storage bucket as a writable volume at `/var/www/html/storage/app`. This keeps files written to Laravel's `local` and `public` disks persistent while preserving the authenticated download paths for private attachments and professional documents. Grant the service account the Storage Object User role; do not make the entire bucket public. Cloud Storage FUSE is not fully POSIX-compliant and does not provide file locking, so avoid concurrent writes to the same object.
+
+Set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, and `LOG_CHANNEL=stderr`. Store `APP_KEY`, `DB_PASSWORD`, and SMTP credentials in Secret Manager. Configure `MAIL_MAILER=smtp`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, and `CONTACT_EMAIL`. For a small demo without a separate queue worker, set `QUEUE_CONNECTION=sync`; database sessions and cache can remain enabled.
+
+Deploy from the repository root with `gcloud run deploy ljs-system --source . --region asia-southeast1 --allow-unauthenticated`, then configure the Cloud SQL connection, service account, secrets, environment variables, and Storage volume in Cloud Run. Run `php artisan migrate --force` once as a Cloud Run Job. To create the initial Lead Broker, provide `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` to a one-time `php artisan db:seed --force` job. The seeder requires all three values and will not reset the password of an existing account when run again.

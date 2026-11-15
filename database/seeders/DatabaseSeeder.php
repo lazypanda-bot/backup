@@ -16,30 +16,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $adminEmail = env('ADMIN_EMAIL');
-        // $adminPassword = env('ADMIN_PASSWORD');
+        $adminName = config('initial-admin.name');
+        $adminEmail = config('initial-admin.email');
+        $adminPassword = config('initial-admin.password');
 
-        // if (! $adminEmail || ! $adminPassword) {
-        //     throw new \RuntimeException('ADMIN_EMAIL and ADMIN_PASSWORD must be set before seeding the admin account.');
-        // }
+        if (! is_string($adminName) || trim($adminName) === ''
+            || ! is_string($adminEmail) || filter_var($adminEmail, FILTER_VALIDATE_EMAIL) === false
+            || ! is_string($adminPassword) || trim($adminPassword) === '') {
+            throw new \RuntimeException(
+                'ADMIN_NAME, a valid ADMIN_EMAIL, and ADMIN_PASSWORD must be set before seeding the initial admin.'
+            );
+        }
 
-        // $admin = User::withTrashed()->firstOrNew(['email' => $adminEmail]);
-        // $admin->restore();
-        // $admin->fill([
-        //     'name' => env('ADMIN_NAME', 'Admin'),
-        //     'password' => Hash::make($adminPassword),
-        //     'account_status' => 'Active',
-        //     'role_name' => 'Admin',
-        // ]);
-        // $admin->save();
-        User::updateOrCreate(
-            ['email' => 'deanna.montejo@lsu.edu.ph'],
-            [
-                'name' => 'Lead Broker',
-                'password' => Hash::make('deannamontejo'),
-                'account_status' => 'Active',
-                'role_name' => 'Lead Broker', 
-            ]
-        );
+        $admin = User::withTrashed()->firstOrNew(['email' => $adminEmail]);
+
+        if (! $admin->exists) {
+            $admin->password = Hash::make($adminPassword);
+        } elseif ($admin->trashed()) {
+            $admin->restore();
+        }
+
+        $admin->fill([
+            'name' => $adminName,
+            'account_status' => 'Active',
+            'role_name' => 'Lead Broker',
+        ]);
+        $admin->save();
     }
 }
