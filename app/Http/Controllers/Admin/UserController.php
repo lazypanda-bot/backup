@@ -63,15 +63,25 @@ class UserController extends Controller
             : ['Agent', 'Broker'];
 
         \App\Support\InputRules::normalize($request);
+        $professionalRoles = ['Lead Broker', 'Broker', 'Agent'];
         $validated = $request->validate([
             'name' => \App\Support\InputRules::name(),
             'email' => \App\Support\InputRules::email(),
             'role_name' => ['required', Rule::in($allowedRoles)],
             'account_status' => 'required|in:Active,Inactive,Suspended',
             'password' => 'required|string|min:8',
+            'license_number' => [
+                Rule::requiredIf(fn () => in_array($request->input('role_name'), $professionalRoles, true)),
+                'nullable',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-z0-9\\-\\/ ]+$/',
+            ],
             'credential_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ], \App\Support\InputRules::messages());
 
+        $licenseNumber = $validated['license_number'] ?? null;
+        unset($validated['license_number']);
         unset($validated['credential_document']);
 
         $existingUser = User::withTrashed()->where('email', $validated['email'])->first();
@@ -92,9 +102,15 @@ class UserController extends Controller
             $user = User::create($validated);
         }
 
+        $profileFields = [];
+        if (in_array($user->role_name, $professionalRoles, true)) {
+            $profileFields['license_number'] = $licenseNumber;
+        }
         if ($request->hasFile('credential_document')) {
-            $path = $request->file('credential_document')->store('professional-credentials', 'local');
-            $user->professionalProfile()->updateOrCreate([], ['document_file' => $path]);
+            $profileFields['document_file'] = $request->file('credential_document')->store('professional-credentials', 'local');
+        }
+        if ($profileFields !== []) {
+            $user->professionalProfile()->updateOrCreate([], $profileFields);
         }
 
         $mailed = true;
@@ -102,20 +118,24 @@ class UserController extends Controller
             Mail::to($user->email, $user->name)->sendNow(new ActivityMail(
                 'Your LJS Realty account is ready',
                 "Hello {$user->name},\n\nAn account was created for you at LJS Realty and Brokerage.\n\n"
-                . "Role: {$user->role_name}\nEmail: {$user->email}\nInitial password: {$initialPassword}\n\n"
-                . 'Log in with these details, then change your password in Settings.'
+                . "Role: {$user->role_name}\nEmail: {$user->email}\nInitial password: {$initialPassword}"
             ));
         } catch (\Throwable $exception) {
             $mailed = false;
             Log::warning('Account email could not be sent.', ['user_id' => $user->user_id, 'error' => $exception->getMessage()]);
         }
 
-        return redirect()->route('admin.users.index')->with(
+        $redirect = redirect()->route('admin.users.index')->with(
             'success',
             $mailed
                 ? 'User created. Their role, email and initial password were emailed to ' . $user->email . '.'
-                : 'User created, but the account email could not be sent. Share the initial password with them directly.'
+                : 'User created, but the account email could not be sent. Share the generated password shown here with them directly.'
         );
+        if (! $mailed) {
+            $redirect->with('manual_initial_password', $initialPassword);
+        }
+
+        return $redirect;
     }
 
     /**

@@ -15,6 +15,12 @@
                 @endforeach
             </div>
         @endif
+        @if (session('manual_initial_password'))
+            <div class="alert alert-warning" role="alert">
+                Temporary password to share with the new user:
+                <strong>{{ session('manual_initial_password') }}</strong>
+            </div>
+        @endif
         @php($userFailed = $errors->any() && old('role_name') !== null)
         @php($teamFailed = $errors->any() && old('role_name') === null && old('user_id') !== null && ! isset($team))
         {{-- Previous default: @php($showTeams = isset($team) || $teamFailed) --}}
@@ -70,6 +76,14 @@
                                     <label for="email" class="form-label">Email Address *</label>
                                     <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Enter email address" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Generated initial password *</label>
+                                    <div class="au-password-field">
+                                        <input type="text" class="form-control" id="password" name="password" autocomplete="off" minlength="8" readonly required>
+                                        <button type="button" class="au-generate-password" id="generateInitialPassword" aria-label="Generate a random password" title="Generate a random password">Generate</button>
+                                    </div>
+                                    <small class="text-danger" id="passwordGenerationError" role="alert" hidden></small>
+                                </div>
                                 <div class="mb-3"> 
                                     <label for="status" class="form-label">Status *</label>
                                     <select class="form-select" id="status" name="account_status" required>
@@ -85,7 +99,7 @@
                                 <h5>Account Information</h5>
                                 <div class="mb-3">
                                     <label for="role" class="form-label">Role *</label>
-                                    <select class="form-select" id="role" name="role_name" required>
+                                    <select class="form-select" id="role" name="role_name" data-user-role required>
                                         <option value="">Select a role</option>
                                         @if (auth()->user()?->normalizedRole() === 'lead_broker')
                                             <option value="Admin" {{ old('role_name') === 'Admin' ? 'selected' : '' }}>Admin</option>
@@ -99,23 +113,21 @@
                                     </select>
                                 </div>
 
-                                <!-- Initial Password Input Field -->
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Initial Password *</label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter initial password" required>
+                                <div class="mb-3" id="professionalLicenseField" hidden>
+                                    <label for="licenseNumber" class="form-label" id="licenseNumberLabel">PRC license number/Accreditation number *</label>
+                                    <input type="text" class="form-control" id="licenseNumber" name="license_number" value="{{ old('license_number') }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" disabled>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="credentialDocument" class="form-label">Credential document</label>
                                     <input type="file" class="form-control" id="credentialDocument" name="credential_document" accept=".pdf,.jpg,.jpeg,.png">
-                                    <small class="text-muted">Private to Admins; PDF/JPG/PNG, max 10 MB.</small>
+                                    <small class="text-muted">PDF/JPG/PNG, max 10 MB.</small>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Form Submit Buttons (Ensure you have your submit button here) -->
-                        <div class="mt-3 text-end">
-                            <button type="submit" class="btn btn-primary">Create User</button>
+                        <div class="au-user-form-actions">
+                            <button type="submit" class="btn btn-primary" disabled>Create User</button>
                         </div>
                     </form>
                 </div>

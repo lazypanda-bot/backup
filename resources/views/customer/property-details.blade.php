@@ -214,6 +214,7 @@
                 @csrf
                 <input type="hidden" name="client_timezone" id="appointmentTimezone" value="{{ auth()->user()->timezone ?? '' }}">
                 <input type="hidden" name="slot_start_utc" id="appointmentSlotUtc">
+                <input type="hidden" name="preferred_time" id="appointmentPreferredTime">
                 <input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
                 <p>Appointment will be sent to {{ $contactUser?->name }}.</p>
                 <label>Name<input name="contact_name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" value="{{ old('contact_name', auth()->user()->name) }}"></label>
@@ -221,10 +222,15 @@
                 <label>Email<input type="email" name="contact_email" required value="{{ old('contact_email', auth()->user()->email) }}"></label>
                 <label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
                 <label>Date<input type="date" name="preferred_date" id="appointmentDate" min="{{ now()->toDateString() }}" required></label>
-                <label>Available time<select name="preferred_time" id="appointmentTime" required disabled><option value="">Choose a date first</option></select></label>
-                <p class="appointment-slots-status" id="appointmentSlotsStatus" role="status" aria-live="polite">Times are shown in your time zone.</p>
+                <label>Time period<select name="time_period" id="appointmentTimePeriod" required disabled>
+                    <option value="">Choose a time period</option>
+                    <option value="morning">Morning (8:00 AM–12:00 PM)</option>
+                    <option value="afternoon">Afternoon (1:00 PM–5:00 PM)</option>
+                </select></label>
+                {{-- <label>Available time<select name="preferred_time" id="appointmentTime" required disabled><option value="">Choose a date first</option></select></label> --}}
+                <p class="appointment-slots-status" id="appointmentSlotsStatus" role="status" aria-live="polite">Select a date to check available periods.</p>
                 <label>Notes<textarea name="additional_note" rows="3"></textarea></label>
-                <button type="submit">Request appointment</button>
+                <button type="submit" disabled>Request appointment</button>
             </form>
         </div>
     </div>

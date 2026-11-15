@@ -56,6 +56,12 @@
     box-sizing: border-box;
 }
 
+.appointment-create-page select:disabled,
+.appointment-create-page button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
 .appointment-create-page textarea {
     resize: none;
     height: 60px; /* Restricts textarea height to prevent it from overflowing */

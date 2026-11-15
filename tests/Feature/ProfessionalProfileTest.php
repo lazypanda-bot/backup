@@ -17,13 +17,13 @@ class ProfessionalProfileTest extends TestCase
         Storage::fake('public');
         Storage::fake('local');
         $leadBroker = User::factory()->create(['role_name' => 'Lead Broker']);
+        $leadBroker->professionalProfile()->create(['license_number' => 'PRC-1001']);
 
         $this->actingAs($leadBroker)->post(route('settings.profile.update'), [
             'name' => $leadBroker->name,
             'email' => $leadBroker->email,
             'contact_number' => '555-0101',
-            'license_number' => 'PRC-1001',
-            'years_experience' => 12,
+            'license_number' => 'PRC-CHANGED-BY-PROFESSIONAL',
             'professional_bio' => 'Experienced Cebu real estate professional.',
             'profile_photo' => UploadedFile::fake()->createWithContent(
                 'lead-broker.png',
@@ -35,7 +35,6 @@ class ProfessionalProfileTest extends TestCase
         $leadBroker->refresh()->load('professionalProfile');
         $this->assertSame('5550101', $leadBroker->contact_number);
         $this->assertSame('PRC-1001', $leadBroker->professionalProfile->license_number);
-        $this->assertSame(12, $leadBroker->professionalProfile->years_experience);
         $this->assertSame('Experienced Cebu real estate professional.', $leadBroker->professionalProfile->professional_bio);
         $this->assertTrue(Storage::disk('public')->exists($leadBroker->profile_photo));
         $this->assertTrue(Storage::disk('local')->exists($leadBroker->professionalProfile->document_file));
@@ -44,7 +43,6 @@ class ProfessionalProfileTest extends TestCase
         $this->get(route('agents.show', $leadBroker))
             ->assertOk()
             ->assertSee('PRC-1001')
-            ->assertSee('12 years')
             ->assertSee('Experienced Cebu real estate professional.');
     }
 

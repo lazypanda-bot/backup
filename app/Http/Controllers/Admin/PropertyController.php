@@ -327,6 +327,26 @@ class PropertyController extends Controller
         return view('pages.properties.edit', compact('property'));
     }
 
+    public function toggleFeatured(Property $property)
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User, 403);
+
+        $isAdmin = $user->actingRole() === 'admin';
+        $isProfessionalOwner = (int) $property->user_id === (int) $user->user_id
+            && in_array($user->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)
+            && ! $isAdmin;
+        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
+
+        $featured = ! (bool) $property->featured;
+        $property->update(['featured' => $featured]);
+
+        return redirect()->back()->with(
+            'success',
+            $featured ? 'Property featured on the home page.' : 'Property removed from featured properties.'
+        );
+    }
+
     public function update(Request $request, Property $property)
     {
         $user = Auth::user();

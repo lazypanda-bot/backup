@@ -52,17 +52,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form.dataset.proposalInitialized) return;
         form.dataset.proposalInitialized = 'true';
         const date = form.querySelector('[name="preferred_date"]');
-        const time = form.querySelector('[name="preferred_time"]');
+        const timeSelect = form.querySelector('select[name="preferred_time"]');
+        const preferredTimeField = form.querySelector('input[name="preferred_time"]');
+        const preferredTimeValue = preferredTimeField || timeSelect;
+        const period = form.querySelector('[name="time_period"]');
         const utcSlot = form.querySelector('[name="slot_start_utc"]');
         const timezone = form.querySelector('[name="timezone"]');
         const status = form.querySelector('.appointment-slots-status');
+        const submitButton = form.querySelector('button[type="submit"]');
 
         form._availability = window.LjsAvailability.init({
             dateInput: date,
-            timeSelect: time,
+            timeSelect,
+            periodSelect: period,
+            preferredTimeField: timeSelect ? null : preferredTimeField,
+            submitButton,
             utcField: utcSlot,
             status,
             timezone: () => timezone.value,
+            excludeSlotUtc: form.dataset.excludeSlotUtc,
+            selectionMessage: 'Your proposal will use the earliest available time in this period:',
             urlFor: ({ date: day, withDates }) => {
                 const url = new URL(form.dataset.proposalAvailabilityUrl, window.location.href);
                 url.searchParams.set('date', day);
@@ -80,16 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (submitting) return;
 
             if (!utcSlot.value) {
-                status.textContent = 'Choose an available date and time before sending the proposal.';
+                status.textContent = 'Choose a date and available time period before sending the proposal.';
                 status.style.color = '#ef4444';
-                date.focus();
+                if (date.value) period.focus();
+                else date.focus();
                 return;
             }
 
             status.textContent = 'Sending proposal...';
             status.style.color = 'inherit';
             submitting = true;
-            const submitButton = form.querySelector('button[type="submit"]');
             if (submitButton) submitButton.disabled = true;
 
             try {
@@ -124,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 submitting = false;
                 delete form.dataset.confirmed;
-                if (submitButton) submitButton.disabled = false;
+                if (submitButton) submitButton.disabled = !utcSlot.value || !preferredTimeValue?.value;
             }
         });
     });

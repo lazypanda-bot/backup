@@ -149,12 +149,12 @@
 .property-breadcrumb { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 18px; color: var(--color-text-muted); font-size: 14px; }
 .property-breadcrumb a { color: var(--color-primary); font-weight: 700; text-decoration: none; }
 .property-breadcrumb > span:last-child { min-width: 0; overflow-wrap: anywhere; color: var(--color-text); }
-.property-gallery { display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; overflow: hidden; margin-bottom: 20px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06); }
+.property-gallery { --property-gallery-height: min(52svh, 420px); display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; overflow: hidden; margin-bottom: 20px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06); }
 .property-gallery.single-image { grid-template-columns: minmax(0, 1fr); }
-.property-image-frame { position: relative; display: grid; min-height: 0; height: 420px; max-height: 52svh; place-items: center; overflow: hidden; border-radius: 10px; background: #f1f5f9; }
+.property-image-frame { position: relative; display: grid; min-height: 0; height: var(--property-gallery-height); place-items: center; overflow: hidden; border-radius: 10px; background: #f1f5f9; }
 .property-main-image { position: absolute; inset: 0; display: block; width: 100% !important; height: 100% !important; min-width: 0 !important; min-height: 0 !important; max-width: 100% !important; max-height: 100% !important; aspect-ratio: auto !important; object-fit: contain !important; object-position: center center !important; }
 .property-image-placeholder { display: grid; width: 100%; height: 100%; min-height: 0; place-items: center; color: var(--color-text-muted); font-size: 14px; }
-.property-gallery-controls { display: grid; grid-template-rows: 40px minmax(0, 1fr) 40px; align-items: stretch; gap: 10px; min-height: 0; }
+.property-gallery-controls { display: grid; box-sizing: border-box; grid-template-rows: 40px minmax(0, 1fr) 40px; align-items: stretch; gap: 10px; height: var(--property-gallery-height); min-height: 0; overflow: hidden; }
 .gallery-nav-button { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-text); cursor: pointer; }
 .gallery-nav-button:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .property-gallery-controls .gallery-nav-button { justify-self: center; }

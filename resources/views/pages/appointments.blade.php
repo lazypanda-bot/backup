@@ -110,15 +110,21 @@
                                 <summary>Propose a new time</summary>
                                 <p class="appointment-propose-note">The other participant must accept; the scheduled time stays unchanged until then.</p>
                                 @include('components.appointment-hours')
-                                <form method="POST" action="{{ route('appointments.proposals.store', $selectedAppointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $selectedAppointment) }}">
+                                <form method="POST" action="{{ route('appointments.proposals.store', $selectedAppointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $selectedAppointment) }}" data-exclude-slot-utc="{{ $selectedAppointment->starts_at_utc?->utc()->format('Y-m-d\TH:i:s\Z') }}">
                                     @csrf
                                     <label>New date<input type="date" name="preferred_date" min="{{ now($viewerTimezone)->toDateString() }}" required></label>
-                                    <label>Available time<select name="preferred_time" required disabled><option value="">Choose a date first</option></select></label>
+                                    <label>Time period<select name="time_period" required disabled>
+                                        <option value="">Choose a time period</option>
+                                        <option value="morning">Morning (8:00 AM–12:00 PM)</option>
+                                        <option value="afternoon">Afternoon (1:00 PM–5:00 PM)</option>
+                                    </select></label>
+                                    {{-- <label>Available time<select name="preferred_time" required disabled><option value="">Choose a date first</option></select></label> --}}
+                                    <input type="hidden" name="preferred_time">
                                     <input type="hidden" name="slot_start_utc">
                                     <input type="hidden" name="timezone" value="{{ $viewerTimezone }}">
                                     <label>Message (optional)<input type="text" name="message" maxlength="500" placeholder="Add a note for the other participant"></label>
-                                    <p class="appointment-slots-status" role="status" aria-live="polite">Times are shown in your local time.</p>
-                                    <button type="submit">Send proposal</button>
+                                    <p class="appointment-slots-status" role="status" aria-live="polite">Select a date to check available periods.</p>
+                                    <button type="submit" disabled>Send proposal</button>
                                 </form>
                             </details>
                         @endif

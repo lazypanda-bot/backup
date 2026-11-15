@@ -62,8 +62,7 @@
                             <form method="POST" action="{{ route('admin.properties.status', $property) }}" class="staff-property-status-form">
                                 @csrf
                                 @method('PATCH')
-                                <label for="status-{{ $property->property_id }}">Status:</label>
-                                <select id="status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit aria-label="Property status">
+                                <select id="status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit aria-label="Status for {{ $property->property_name }}">
                                     @foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [$status])) as $statusOption)
                                         <option value="{{ $statusOption }}" {{ $status === $statusOption ? 'selected' : '' }}>{{ $statusOption }}</option>
                                     @endforeach
@@ -72,8 +71,10 @@
                         </td>
                         <td class="staff-property-referral-cell">
                             @if ($listingReferralCode)
-                                <code>{{ $listingReferralCode->code }}</code>
-                                <button type="button" class="staff-referral-copy" data-copy-referral="{{ route('referrals.open', $listingReferralCode->code) }}"><i class="fas fa-copy" aria-hidden="true"></i> Copy link</button>
+                                <div class="staff-referral-inline">
+                                    <code>{{ $listingReferralCode->code }}</code>
+                                    <button type="button" class="staff-referral-copy is-icon-only" title="Copy referral link" aria-label="Copy referral link" data-copy-referral="{{ route('referrals.open', $listingReferralCode->code) }}"><i data-lucide="copy" aria-hidden="true"></i></button>
+                                </div>
                             @elseif ($property->approval_status === 'Approved')
                                 <form method="POST" action="{{ route('agent.properties.generate-code', $property->property_id) }}">
                                     @csrf
@@ -83,12 +84,24 @@
                                 <span class="staff-unassigned">Not available</span>
                             @endif
                         </td>
-                        <td><div class="action-buttons staff-property-actions">
-                            <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
-                            @if ($status !== 'Sold')
-                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
-                            @endif
-                        </div></td>
+                        <td>
+                            <div class="listing-row-actions">
+                                <form method="POST" action="{{ route('admin.properties.toggle-featured', $property) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="property-feature-toggle {{ $property->featured ? 'is-featured' : '' }}" aria-pressed="{{ $property->featured ? 'true' : 'false' }}" aria-label="{{ $property->featured ? 'Unfeature' : 'Feature' }} {{ $property->property_name }}">
+                                        <span class="property-feature-toggle-indicator" aria-hidden="true"></span>
+                                        {{ $property->featured ? 'Featured' : 'Not featured' }}
+                                    </button>
+                                </form>
+                                <div class="action-buttons staff-property-actions">
+                                    <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    @if ($status !== 'Sold')
+                                        <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="staff-table-empty">No properties added yet.</td></tr>
@@ -191,8 +204,7 @@
                                 <form method="POST" action="{{ route('admin.properties.status', $property) }}" class="staff-property-status-form">
                                     @csrf
                                     @method('PATCH')
-                                    <label for="history-status-{{ $property->property_id }}">Status:</label>
-                                    <select id="history-status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit aria-label="Property status">
+                                    <select id="history-status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit aria-label="Status for {{ $property->property_name }}">
                                         @foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [$status])) as $statusOption)
                                             <option value="{{ $statusOption }}" {{ $status === $statusOption ? 'selected' : '' }}>{{ $statusOption }}</option>
                                         @endforeach
@@ -202,18 +214,32 @@
                         </td>
                         <td class="staff-property-referral-cell">
                             @if ($listingReferralCode)
-                                <code>{{ $listingReferralCode->code }}</code>
-                                <button type="button" class="staff-referral-copy" data-copy-referral="{{ route('referrals.open', $listingReferralCode->code) }}"><i class="fas fa-copy" aria-hidden="true"></i> Copy link</button>
+                                <div class="staff-referral-inline">
+                                    <code>{{ $listingReferralCode->code }}</code>
+                                    <button type="button" class="staff-referral-copy is-icon-only" title="Copy referral link" aria-label="Copy referral link" data-copy-referral="{{ route('referrals.open', $listingReferralCode->code) }}"><i data-lucide="copy" aria-hidden="true"></i></button>
+                                </div>
                             @else
                                 <span class="staff-unassigned">Not available</span>
                             @endif
                         </td>
-                        <td><div class="action-buttons staff-property-actions">
-                            <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
-                            @if ($status !== 'Sold')
-                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
-                            @endif
-                        </div></td>
+                        <td>
+                            <div class="listing-row-actions">
+                                <form method="POST" action="{{ route('admin.properties.toggle-featured', $property) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="property-feature-toggle {{ $property->featured ? 'is-featured' : '' }}" aria-pressed="{{ $property->featured ? 'true' : 'false' }}" aria-label="{{ $property->featured ? 'Unfeature' : 'Feature' }} {{ $property->property_name }}">
+                                        <span class="property-feature-toggle-indicator" aria-hidden="true"></span>
+                                        {{ $property->featured ? 'Featured' : 'Not featured' }}
+                                    </button>
+                                </form>
+                                <div class="action-buttons staff-property-actions">
+                                    <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    @if ($status !== 'Sold')
+                                        <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="staff-table-empty">No history listings yet.</td></tr>
@@ -352,7 +378,17 @@ document.querySelectorAll('[data-copy-referral]').forEach(function (button) {
         const referralUrl = button.dataset.copyReferral;
         try {
             await navigator.clipboard.writeText(referralUrl);
-            button.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Copied';
+            button.innerHTML = '<i data-lucide="check" aria-hidden="true"></i>';
+            button.setAttribute('aria-label', 'Referral link copied');
+            button.title = 'Referral link copied';
+            window.lucide?.createIcons();
+            window.setTimeout(function () {
+                if (!button.isConnected) return;
+                button.innerHTML = '<i data-lucide="copy" aria-hidden="true"></i>';
+                button.setAttribute('aria-label', 'Copy referral link');
+                button.title = 'Copy referral link';
+                window.lucide?.createIcons();
+            }, 1600);
         } catch {
             window.prompt('Copy this referral link', referralUrl);
         }

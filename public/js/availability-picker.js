@@ -1,6 +1,6 @@
 /* Shared date + time picker for appointment booking and time proposals; unavailable dates and times are greyed out and disabled. */
 window.LjsAvailability = {
-    init({ dateInput, timeSelect, utcField, status, timezone, urlFor, ready = () => true, idleText = 'Choose a date first', readyText = 'Times are shown in your local time.' }) {
+    init({ dateInput, timeSelect, periodSelect, preferredTimeField, submitButton, excludeSlotUtc, selectionMessage = 'Your request will use the earliest available time in this period:', utcField, status, timezone, urlFor, ready = () => true, idleText = 'Choose a date first', readyText = 'Times are shown in your local time.' }) {
         const events = new AbortController();
         const pad = (n) => String(n).padStart(2, '0');
         const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -8,12 +8,20 @@ window.LjsAvailability = {
         const [ty, tm, td] = todayIso().split('-').map(Number);
         const today = new Date(ty, tm - 1, td);
         const maxDate = new Date(ty, tm - 1, td + 44);
+
         let unavailable = new Set();
         // let datesLoaded = false;
         let dateRequest = null;
         let dateVersion = 0;
         let slotVersion = 0;
         let view = new Date(ty, tm - 1, 1);
+        let daySlots = [];
+
+        const clearSelection = () => {
+            utcField.value = '';
+            if (preferredTimeField) preferredTimeField.value = '';
+            if (submitButton) submitButton.disabled = true;
+        };
 
         dateInput.type = 'text';
         dateInput.readOnly = true;
@@ -59,6 +67,34 @@ window.LjsAvailability = {
 
         const isClosed = (d) => d < today || d > maxDate || unavailable.has(iso(d));
 
+        const resetPeriodOptions = () => {
+            if (!periodSelect) return;
+            periodSelect.value = '';
+            periodSelect.disabled = true;
+            Array.from(periodSelect.options).forEach((option) => {
+                if (option.value) option.disabled = true;
+            });
+        };
+
+        const updatePeriodOptions = () => {
+            if (!periodSelect) return;
+            let availablePeriods = 0;
+            const periods = {
+                morning: (hour) => hour >= 8 && hour < 12,
+                afternoon: (hour) => hour >= 13 && hour < 17,
+            };
+            Array.from(periodSelect.options).forEach((option) => {
+                if (!option.value) return;
+                const isAvailable = daySlots.some((slot) => {
+                    const hour = Number(slot.professional_time.slice(0, 2));
+                    return slot.available && periods[option.value]?.(hour);
+                });
+                option.disabled = !isAvailable;
+                if (isAvailable) availablePeriods++;
+            });
+            periodSelect.disabled = availablePeriods === 0;
+        };
+
         const render = () => {
             const monthLabel = view.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
             const first = new Date(view.getFullYear(), view.getMonth(), 1);
@@ -75,17 +111,102 @@ window.LjsAvailability = {
             pop.innerHTML = html + '</div>';
         };
 
+        const renderTimeOptions = () => {
+            if (!dateInput.value || !ready()) {
+                clearSelection();
+                resetPeriodOptions();
+                if (timeSelect) {
+                    timeSelect.replaceChildren(new Option(idleText, ''));
+                    timeSelect.disabled = true;
+                }
+                return;
+            }
+
+            if (periodSelect && !periodSelect.value) {
+                clearSelection();
+                if (timeSelect) {
+                    timeSelect.replaceChildren(new Option('Choose a time period first', ''));
+                    timeSelect.disabled = true;
+                }
+                status.textContent = periodSelect.disabled
+                    ? 'No available times for this date. Choose another date.'
+                    : timeSelect
+                        ? 'Choose a morning or afternoon period to see available times.'
+                        : 'Choose a morning or afternoon period to check availability.';
+                return;
+            }
+
+            const slots = periodSelect
+                ? daySlots.filter((slot) => {
+                    const hour = Number(slot.professional_time.slice(0, 2));
+                    return periodSelect.value === 'morning'
+                        ? hour >= 8 && hour < 12
+                        : hour >= 13 && hour < 17;
+                })
+                : daySlots;
+
+            const open = slots.filter((slot) => slot.available).length;
+            if (!timeSelect) {
+                const selectedSlot = slots.find((slot) => slot.available);
+                clearSelection();
+                if (selectedSlot && preferredTimeField) {
+                    preferredTimeField.value = selectedSlot.local_time;
+                    utcField.value = selectedSlot.value;
+                    if (submitButton) submitButton.disabled = false;
+                    status.textContent = `${selectionMessage} ${selectedSlot.label}.`;
+                } else {
+                    status.textContent = open
+                        ? 'Select an available time period to continue.'
+                        : 'No available times in this period. Choose another period or date.';
+                }
+                return;
+            }
+
+            const orderedSlots = [
+                ...slots.filter((slot) => slot.available),
+                ...slots.filter((slot) => !slot.available),
+            ];
+
+            clearSelection();
+            timeSelect.replaceChildren(new Option(open ? 'Select an available time' : 'No times available', ''));
+
+            orderedSlots.forEach((slot) => {
+                const option = new Option(
+                    slot.available ? slot.label : `${slot.label} (unavailable)`,
+                    slot.local_time
+                );
+                option.dataset.slotUtc = slot.value;
+                option.disabled = !slot.available;
+                timeSelect.add(option);
+            });
+
+            timeSelect.disabled = open === 0;
+            status.textContent = open
+                ? readyText
+                : periodSelect && daySlots.some((slot) => slot.available)
+                    ? 'No available times in this period. Choose another period or date.'
+                    : 'No available times for this date. Choose another date.';
+        };
+
         const loadSlots = async () => {
             const version = ++slotVersion;
             const requestedDate = dateInput.value;
-            utcField.value = '';
+            clearSelection();
+            daySlots = [];
+            resetPeriodOptions();
             if (!dateInput.value || !ready()) {
-                timeSelect.replaceChildren(new Option(idleText, ''));
-                timeSelect.disabled = true;
+                if (timeSelect) {
+                    timeSelect.replaceChildren(new Option(idleText, ''));
+                    timeSelect.disabled = true;
+                }
                 return;
             }
-            timeSelect.replaceChildren(new Option('Loading times…', ''));
-            timeSelect.disabled = true;
+            if (timeSelect) {
+                timeSelect.replaceChildren(new Option('Loading times…', ''));
+                timeSelect.disabled = true;
+            } else {
+                status.textContent = 'Checking availability…';
+            }
             try {
                 // Previous request used the live field value and did not refresh the calendar date state.
                 // const url = urlFor({ date: dateInput.value, withDates: false });
@@ -95,24 +216,23 @@ window.LjsAvailability = {
                 const data = await response.json();
                 if (version !== slotVersion || requestedDate !== dateInput.value) return;
                 if (!response.ok) throw new Error(data.message || 'Could not load available times.');
-                const slots = (data.all_slots || data.slots || []).map((slot) => ({ ...slot, available: Boolean(slot.available) }));
-                const open = slots.filter((slot) => slot.available).length;
+                daySlots = (data.all_slots || data.slots || []).map((slot) => ({
+                    ...slot,
+                    available: Boolean(slot.available) && slot.value !== excludeSlotUtc,
+                }));
+                const open = daySlots.filter((slot) => slot.available).length;
                 if (open === 0) unavailable.add(requestedDate);
                 else unavailable.delete(requestedDate);
                 if (!pop.hidden) render();
-                const orderedSlots = [...slots.filter((slot) => slot.available), ...slots.filter((slot) => !slot.available)];
-                timeSelect.replaceChildren(new Option(open ? 'Select an available time' : 'No times available', ''));
-                orderedSlots.forEach((slot) => {
-                    const option = new Option(slot.available ? slot.label : `${slot.label} (unavailable)`, slot.local_time);
-                    option.dataset.slotUtc = slot.value;
-                    option.disabled = !slot.available;
-                    timeSelect.add(option);
-                });
-                timeSelect.disabled = open === 0;
-                status.textContent = open ? readyText : 'No available times for this date. Choose another date.';
+                updatePeriodOptions();
+                renderTimeOptions();
             } catch (error) {
                 if (error.name === 'AbortError' || version !== slotVersion || requestedDate !== dateInput.value) return;
-                timeSelect.replaceChildren(new Option('No times available', ''));
+                if (timeSelect) {
+                    timeSelect.replaceChildren(new Option('No times available', ''));
+                    timeSelect.disabled = true;
+                }
+                resetPeriodOptions();
                 status.textContent = error.message;
             }
         };
@@ -183,9 +303,12 @@ window.LjsAvailability = {
             if (!pop.hidden) positionPop();
         }, { capture: true, signal: events.signal });
 
-        timeSelect.addEventListener('change', () => {
+        timeSelect?.addEventListener('change', () => {
             utcField.value = timeSelect.selectedOptions[0]?.dataset.slotUtc || '';
+            if (submitButton) submitButton.disabled = !utcField.value;
         });
+
+        periodSelect?.addEventListener('change', renderTimeOptions);
 
         return {
             // Previous reload: reload: () => { datesLoaded = false; unavailable = new Set(); loadSlots(); },

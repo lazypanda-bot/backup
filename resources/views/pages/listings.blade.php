@@ -106,8 +106,10 @@
 								</td>
 								<td class="staff-property-referral-cell">
 									@if (! $isSoldListing && $property->approval_status === 'Approved' && $referralCode)
-										<code>{{ $referralCode->code }}</code>
-										<button type="button" class="staff-referral-copy" data-copy-referral="{{ route('referrals.open', $referralCode->code) }}"><i class="fas fa-copy" aria-hidden="true"></i> Copy link</button>
+										<div class="staff-referral-inline">
+											<code>{{ $referralCode->code }}</code>
+											<button type="button" class="staff-referral-copy is-icon-only" title="Copy referral link" aria-label="Copy referral link" data-copy-referral="{{ route('referrals.open', $referralCode->code) }}"><i data-lucide="copy" aria-hidden="true"></i></button>
+										</div>
 									@elseif (! $isSoldListing && $property->approval_status === 'Approved')
 										<form method="POST" action="{{ route('agent.properties.generate-code', $property->property_id) }}">
 											@csrf
@@ -118,14 +120,24 @@
 									@endif
 								</td>
 								<td class="text-end">
-									<div class="au-action-group">
-										<a href="{{ route('staff.properties.show', $property) }}" class="btn-action view" title="View" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>
-										@if ($isSoldListing)
-										@elseif ($blocksResubmission)
-											<span class="btn-action edit is-disabled" title="Duplicate listing cannot be resubmitted" aria-label="Duplicate listing cannot be resubmitted"><i class="fas fa-ban"></i></span>
-										@else
-											<a href="{{ route('admin.properties.edit', $property) }}" class="btn-action edit" title="{{ $property->approval_status === 'Rejected' ? 'Edit and resubmit' : 'Edit' }}" aria-label="Edit {{ $property->property_name }}"><i class="fas fa-pen"></i></a>
-										@endif
+									<div class="listing-row-actions">
+										<form method="POST" action="{{ route('admin.properties.toggle-featured', $property) }}">
+											@csrf
+											@method('PATCH')
+											<button type="submit" class="property-feature-toggle {{ $property->featured ? 'is-featured' : '' }}" aria-pressed="{{ $property->featured ? 'true' : 'false' }}" aria-label="{{ $property->featured ? 'Unfeature' : 'Feature' }} {{ $property->property_name }}">
+												<span class="property-feature-toggle-indicator" aria-hidden="true"></span>
+												{{ $property->featured ? 'Featured' : 'Not featured' }}
+											</button>
+										</form>
+										<div class="au-action-group">
+											<a href="{{ route('staff.properties.show', $property) }}" class="btn-action view" title="View" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>
+											@if ($isSoldListing)
+											@elseif ($blocksResubmission)
+												<span class="btn-action edit is-disabled" title="Duplicate listing cannot be resubmitted" aria-label="Duplicate listing cannot be resubmitted"><i class="fas fa-ban"></i></span>
+											@else
+												<a href="{{ route('admin.properties.edit', $property) }}" class="btn-action edit" title="{{ $property->approval_status === 'Rejected' ? 'Edit and resubmit' : 'Edit' }}" aria-label="Edit {{ $property->property_name }}"><i class="fas fa-pen"></i></a>
+											@endif
+										</div>
 									</div>
 								</td>
 							</tr>
@@ -200,7 +212,17 @@
 					const referralUrl = button.dataset.copyReferral;
 					try {
 						await navigator.clipboard.writeText(referralUrl);
-						button.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Copied';
+						button.innerHTML = '<i data-lucide="check" aria-hidden="true"></i>';
+						button.setAttribute('aria-label', 'Referral link copied');
+						button.title = 'Referral link copied';
+						window.lucide?.createIcons();
+						window.setTimeout(() => {
+							if (!button.isConnected) return;
+							button.innerHTML = '<i data-lucide="copy" aria-hidden="true"></i>';
+							button.setAttribute('aria-label', 'Copy referral link');
+							button.title = 'Copy referral link';
+							window.lucide?.createIcons();
+						}, 1600);
 					} catch {
 						window.prompt('Copy this referral link', referralUrl);
 					}

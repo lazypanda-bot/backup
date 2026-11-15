@@ -228,6 +228,53 @@
     box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
 }
 
+.au-password-field {
+    position: relative;
+}
+
+.au-password-field .form-control {
+    padding-right: 104px;
+}
+
+.au-user-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.1rem;
+}
+
+.au-form-card .au-password-field .au-generate-password {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    min-height: 34px;
+    padding: 0.4rem 0.9rem;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 999px !important;
+    background: var(--color-primary);
+    color: #fff;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.au-generate-password:hover {
+    transform: translateY(calc(-50% - 1px));
+    background: var(--color-success);
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.22);
+}
+
+.au-generate-password:active {
+    transform: translateY(-50%);
+}
+
+.au-generate-password:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
 .au-search-wrapper {
     margin-bottom: 1rem;
 }

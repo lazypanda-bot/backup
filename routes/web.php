@@ -209,6 +209,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/properties', [PropertyController::class, 'store'])->name('admin.properties.store');
     Route::post('/admin/properties/{property}/review', [PropertyController::class, 'reviewListing'])->name('admin.properties.review');
     Route::patch('/admin/properties/{property}/status', [PropertyController::class, 'updateStatus'])->name('admin.properties.status');
+    Route::patch('/admin/properties/{property}/featured', [PropertyController::class, 'toggleFeatured'])->name('admin.properties.toggle-featured');
     Route::delete('/admin/properties/{property}', [PropertyController::class, 'destroy'])->name('admin.properties.destroy');
     Route::get('/admin/properties/{property}/edit', [PropertyController::class, 'edit'])->name('admin.properties.edit');
     Route::put('/admin/properties/{property}', [PropertyController::class, 'update'])->name('admin.properties.update');

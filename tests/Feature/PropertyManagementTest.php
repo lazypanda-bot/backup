@@ -113,6 +113,53 @@ class PropertyManagementTest extends TestCase
             ->assertSee('id="propertyFilterStatus"', false);
     }
 
+    public function test_professional_owner_and_admin_can_toggle_featured_state_but_other_professionals_cannot(): void
+    {
+        $owner = User::factory()->create(['role_name' => 'Agent']);
+        $otherAgent = User::factory()->create(['role_name' => 'Agent']);
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $property = Property::create([
+            'user_id' => $owner->user_id,
+            'property_name' => 'Feature Toggle Home',
+            'property_type' => 'House & Lot',
+            'street' => '1 Toggle Street',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 5000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Approved',
+            'listing_mode' => 'professional',
+            'featured' => false,
+        ]);
+
+        $this->actingAs($owner)
+            ->patch(route('admin.properties.toggle-featured', $property))
+            ->assertRedirect();
+        $this->assertDatabaseHas('property_listings', [
+            'property_id' => $property->property_id,
+            'featured' => true,
+        ]);
+
+        $this->patch(route('admin.properties.toggle-featured', $property))
+            ->assertRedirect();
+        $this->assertDatabaseHas('property_listings', [
+            'property_id' => $property->property_id,
+            'featured' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.properties.toggle-featured', $property))
+            ->assertRedirect();
+        $this->assertDatabaseHas('property_listings', [
+            'property_id' => $property->property_id,
+            'featured' => true,
+        ]);
+
+        $this->actingAs($otherAgent)
+            ->patch(route('admin.properties.toggle-featured', $property))
+            ->assertForbidden();
+    }
+
     public function test_home_map_data_includes_all_approved_properties_without_search(): void
     {
         $admin = User::factory()->create(['role_name' => 'Admin']);

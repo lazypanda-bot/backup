@@ -3,11 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!form) return;
 
     const dateField = form.querySelector('#appointmentDate');
-    const timeField = form.querySelector('#appointmentTime');
+    const timeSelect = form.querySelector('select[name="preferred_time"]');
+    const preferredTimeField = form.querySelector('input[name="preferred_time"]');
+    const timeField = timeSelect || preferredTimeField;
+    const periodField = form.querySelector('#appointmentTimePeriod');
     const timezoneField = form.querySelector('#appointmentTimezone');
     const slotField = form.querySelector('#appointmentSlotUtc');
     const status = form.querySelector('#appointmentSlotsStatus');
     const assignmentField = form.elements.namedItem('assign_id');
+    const submitButton = form.querySelector('button[type="submit"]');
 
     if (!timezoneField.value) {
         try {
@@ -19,7 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const picker = window.LjsAvailability.init({
         dateInput: dateField,
-        timeSelect: timeField,
+        timeSelect,
+        periodSelect: periodField,
+        preferredTimeField: timeSelect ? null : preferredTimeField,
+        submitButton,
         utcField: slotField,
         status,
         timezone: () => timezoneField.value,
@@ -37,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     assignmentField?.addEventListener('change', () => picker.reload());
+
     form.addEventListener('submit', (event) => {
         if (!dateField.value) {
             event.preventDefault();
@@ -45,17 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!timeField.value) {
+        if (!timeField?.value) {
             event.preventDefault();
-            status.textContent = 'Choose an available time before requesting the appointment.';
-            timeField.focus();
+            status.textContent = 'Choose an available time period before requesting the appointment.';
+            periodField.focus();
             return;
         }
 
         if (!slotField.value) {
             event.preventDefault();
-            status.textContent = 'Choose an available date and time before requesting the appointment.';
-            timeField.focus();
+            status.textContent = 'Choose an available date and time period before requesting the appointment.';
+            periodField.focus();
         }
     });
 });

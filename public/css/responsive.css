@@ -383,11 +383,11 @@
         padding-top: 88px;
     }
     .property-gallery {
+        --property-gallery-height: min(42svh, 300px);
         grid-template-columns: minmax(0, 1fr);
     }
     .property-image-frame {
-        height: 300px;
-        max-height: 42svh;
+        height: var(--property-gallery-height);
     }
     .property-main-image {
         height: 100% !important;
@@ -426,13 +426,15 @@
         padding-top: 84px;
         padding-bottom: 32px;
     }
+    .property-gallery {
+        --property-gallery-height: min(38svh, 220px);
+    }
     .property-breadcrumb {
         margin-bottom: 12px;
         font-size: 13px;
     }
     .property-image-frame {
-        height: 220px;
-        max-height: 38svh;
+        height: var(--property-gallery-height);
     }
     .property-main-image {
         object-fit: contain !important;

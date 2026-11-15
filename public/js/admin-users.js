@@ -74,7 +74,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeAndReset = () => {
             closeModal(overlay);
             const form = overlay?.querySelector('form');
-            if (form) form.reset();
+            if (form) {
+                form.reset();
+                if (form === addUserForm) {
+                    clearInitialPassword();
+                    updateProfessionalLicenseField();
+                }
+            }
         };
 
         if (closeBtn) closeBtn.addEventListener('click', closeAndReset);
@@ -95,6 +101,74 @@ document.addEventListener('DOMContentLoaded', function() {
         closeBtnId: 'closeAddUserModal',
         cancelBtnId: 'cancelAddUserForm',
     });
+    const addUserForm = addUserModalOverlay?.querySelector('form');
+    const initialPassword = document.getElementById('password');
+    const generatePasswordButton = document.getElementById('generateInitialPassword');
+    const passwordGenerationError = document.getElementById('passwordGenerationError');
+    const addUserSubmit = addUserForm?.querySelector('button[type="submit"]');
+    const roleSelect = addUserForm?.querySelector('[data-user-role]');
+    const licenseField = document.getElementById('professionalLicenseField');
+    const licenseInput = document.getElementById('licenseNumber');
+    const licenseLabel = document.getElementById('licenseNumberLabel');
+
+    function clearInitialPassword() {
+        if (!initialPassword || !addUserSubmit) return;
+        initialPassword.value = '';
+        addUserSubmit.disabled = true;
+        if (passwordGenerationError) {
+            passwordGenerationError.textContent = '';
+            passwordGenerationError.hidden = true;
+        }
+    }
+
+    function generateInitialPassword() {
+        if (!initialPassword || !addUserSubmit) return;
+        if (!window.crypto?.getRandomValues) {
+            initialPassword.value = '';
+            addUserSubmit.disabled = true;
+            if (passwordGenerationError) {
+                passwordGenerationError.textContent = 'Secure password generation is unavailable in this browser.';
+                passwordGenerationError.hidden = false;
+            }
+            return;
+        }
+
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*+-_=';
+        const limit = Math.floor(256 / alphabet.length) * alphabet.length;
+        let password = '';
+        while (password.length < 20) {
+            const bytes = new Uint8Array(32);
+            window.crypto.getRandomValues(bytes);
+            for (const byte of bytes) {
+                if (byte < limit) password += alphabet[byte % alphabet.length];
+                if (password.length === 20) break;
+            }
+        }
+        initialPassword.value = password;
+        addUserSubmit.disabled = false;
+        if (passwordGenerationError) {
+            passwordGenerationError.textContent = '';
+            passwordGenerationError.hidden = true;
+        }
+    }
+
+    function updateProfessionalLicenseField() {
+        if (!roleSelect || !licenseField || !licenseInput || !licenseLabel) return;
+        const isProfessional = ['Lead Broker', 'Broker', 'Agent'].includes(roleSelect.value);
+        licenseField.hidden = !isProfessional;
+        licenseInput.disabled = !isProfessional;
+        licenseInput.required = isProfessional;
+        if (isProfessional) {
+            licenseLabel.textContent = roleSelect.value === 'Agent' ? 'Accreditation number *' : 'PRC license number *';
+        } else {
+            licenseInput.value = '';
+        }
+    }
+
+    generatePasswordButton?.addEventListener('click', generateInitialPassword);
+    roleSelect?.addEventListener('change', updateProfessionalLicenseField);
+    clearInitialPassword();
+    updateProfessionalLicenseField();
 
     const addTeamModalOverlay = setupModal({
         openBtnId: 'openAddTeamModal',

@@ -36,17 +36,17 @@ class SettingsWorkflowTest extends TestCase
         $this->assertTrue(Storage::disk('public')->exists($user->profile_photo));
     }
 
-    public function test_professional_can_update_credentials_and_contact_details(): void
+    public function test_professional_cannot_change_admin_managed_license_but_can_update_other_profile_details(): void
     {
         Storage::fake('local');
         $agent = User::factory()->create(['role_name' => 'Agent']);
+        $agent->professionalProfile()->create(['license_number' => 'ACC-88991']);
 
         $response = $this->actingAs($agent)->post(route('settings.profile.update'), [
             'name' => $agent->name,
             'email' => $agent->email,
             'contact_number' => '09171234567',
-            'license_number' => 'PRC-88991',
-            'years_experience' => 7,
+            'license_number' => 'ACC-CHANGED-BY-AGENT',
             'professional_bio' => 'Cebu-based agent specializing in family homes.',
             'credential_document' => UploadedFile::fake()->create('license.pdf', 20, 'application/pdf'),
         ]);
@@ -54,11 +54,15 @@ class SettingsWorkflowTest extends TestCase
         $response->assertRedirect();
         $agent->refresh();
         $this->assertSame('09171234567', $agent->contact_number);
-        $this->assertSame('PRC-88991', $agent->professionalProfile?->license_number);
-        $this->assertSame(7, (int) $agent->professionalProfile?->years_experience);
+        $this->assertSame('ACC-88991', $agent->professionalProfile?->license_number);
         $this->assertSame('Cebu-based agent specializing in family homes.', $agent->professionalProfile?->professional_bio);
         $this->assertNotEmpty($agent->professionalProfile?->document_file);
         $this->assertTrue(Storage::disk('local')->exists($agent->professionalProfile->document_file));
+        $this->actingAs($agent)->get(route('app.page', ['page' => 'settings']))
+            ->assertOk()
+            ->assertSee('ACC-88991')
+            ->assertSee('readonly', false)
+            ->assertDontSee('name="license_number"', false);
 
         $this->actingAs($agent)->get(route('settings.credentials.download'))
             ->assertOk()

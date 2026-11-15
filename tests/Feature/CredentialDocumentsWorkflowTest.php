@@ -27,6 +27,7 @@ class CredentialDocumentsWorkflowTest extends TestCase
             'password' => 'InitialPass1!',
             'role_name' => 'Agent',
             'account_status' => 'Active',
+            'license_number' => 'ACC-12090',
             'credential_document' => UploadedFile::fake()->create('license.pdf', 24, 'application/pdf'),
         ])->assertRedirect(route('admin.users.index'));
 
@@ -35,15 +36,35 @@ class CredentialDocumentsWorkflowTest extends TestCase
 
         $this->assertTrue(Hash::check('InitialPass1!', $professional->password));
         $this->assertNotEmpty($documentPath);
+        $this->assertSame('ACC-12090', $professional->professionalProfile?->license_number);
         $this->assertStringStartsWith('professional-credentials/', $documentPath);
         $this->assertTrue(Storage::disk('local')->exists($documentPath));
         $this->assertFalse(Storage::disk('public')->exists($documentPath));
 
+        $this->get(route('agents.show', $professional))
+            ->assertOk()
+            ->assertSee('ACC-12090');
         $this->get(route('admin.users.credentials', $professional))
             ->assertOk()
             ->assertHeader('content-disposition');
 
         $agent = User::factory()->create(['role_name' => 'Agent']);
         $this->actingAs($agent)->get(route('admin.users.credentials', $professional))->assertForbidden();
+    }
+
+    public function test_admin_must_enter_a_license_number_when_adding_a_professional(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+
+        $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'Missing License Agent',
+            'email' => 'missing-license@example.test',
+            'password' => 'InitialPass1!',
+            'role_name' => 'Agent',
+            'account_status' => 'Active',
+        ])->assertSessionHasErrors('license_number');
+
+        $this->assertDatabaseMissing('users', ['email' => 'missing-license@example.test']);
     }
 }

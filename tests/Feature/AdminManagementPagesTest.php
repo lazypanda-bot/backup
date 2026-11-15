@@ -23,6 +23,9 @@ class AdminManagementPagesTest extends TestCase
         $this->actingAs($secondAdmin)->get('/app/users')
             ->assertOk()
             ->assertSee('id="openAddUserModal"', false)
+            ->assertSee('id="generateInitialPassword"', false)
+            ->assertSee('data-user-role', false)
+            ->assertSee('id="professionalLicenseField"', false)
             ->assertSee('id="openAddTeamModal"', false);
 
         $this->post(route('admin.users.store'), [
@@ -31,6 +34,7 @@ class AdminManagementPagesTest extends TestCase
             'password' => 'InitialPass1!',
             'role_name' => 'Broker',
             'account_status' => 'Active',
+            'license_number' => 'PRC-10234',
         ])->assertRedirect(route('admin.users.index'));
 
         $this->assertDatabaseHas('users', ['email' => 'second-admin-created@example.test', 'role_name' => 'Broker']);
@@ -124,6 +128,7 @@ class AdminManagementPagesTest extends TestCase
             $this->post(route('admin.users.store'), [
                 'name' => 'Added ' . $role, 'email' => $email, 'password' => 'InitialPass1!',
                 'role_name' => $role, 'account_status' => 'Active',
+                ...($role === 'Lead Broker' ? ['license_number' => 'PRC-56432'] : []),
             ])->assertRedirect(route('admin.users.index'));
 
             $this->assertDatabaseHas('users', ['email' => $email, 'role_name' => $role]);
@@ -214,20 +219,22 @@ class AdminManagementPagesTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.users.store'), [
             'name' => 'Mailed Agent', 'email' => 'mailed-agent@example.test', 'password' => 'InitialPass1!',
-            'role_name' => 'Agent', 'account_status' => 'Active',
+            'role_name' => 'Agent', 'account_status' => 'Active', 'license_number' => 'ACC-2345',
         ])->assertRedirect(route('admin.users.index'));
 
         $created = User::where('email', 'mailed-agent@example.test')->firstOrFail();
         $this->assertNotSame('InitialPass1!', $created->password);
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('InitialPass1!', $created->password));
+        $this->assertSame('ACC-2345', $created->professionalProfile?->license_number);
         \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\ActivityMail::class, fn ($mail) => $mail->hasTo('mailed-agent@example.test')
             && str_contains($mail->messageBody, 'Role: Agent')
             && str_contains($mail->messageBody, 'Email: mailed-agent@example.test')
-            && str_contains($mail->messageBody, 'Initial password: InitialPass1!'));
+            && str_contains($mail->messageBody, 'Initial password: InitialPass1!')
+            && ! str_contains($mail->messageBody, 'change your password'));
 
         $this->from(route('admin.users.index'))->post(route('admin.users.store'), [
             'name' => 'Dup', 'email' => 'mailed-agent@example.test', 'password' => 'InitialPass1!',
-            'role_name' => 'Agent', 'account_status' => 'Active',
+            'role_name' => 'Agent', 'account_status' => 'Active', 'license_number' => 'ACC-2345',
         ])->assertRedirect(route('admin.users.index'));
         $this->get(route('admin.users.index'))->assertSee('id="addUserModalOverlay"', false)->assertSee('au-modal-overlay open', false);
 

@@ -32,12 +32,16 @@
                             <td class="text-muted">{{ $user->email }}</td>
                             <td>{{ $user->contact_number }}</td>
                             <td>
+                                @php($licenseNumber = $user->professionalProfile?->license_number)
                                 @php($credentialFile = $user->professionalProfile?->document_file)
+                                @if ($licenseNumber)
+                                    <div>{{ $user->role_name === 'Agent' ? 'Accreditation' : 'PRC license' }}: {{ $licenseNumber }}</div>
+                                @endif
                                 @if ($credentialFile)
                                     <button type="button" class="au-view-credential-btn" data-view-credential="{{ route('admin.users.credentials', $user) }}" data-credential-type="{{ strtolower(pathinfo($credentialFile, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'image' }}" data-credential-owner="{{ $user->name }}">
                                         <i class="fas fa-file-shield" aria-hidden="true"></i><span>View credential</span>
                                     </button>
-                                @else
+                                @elseif (! $licenseNumber)
                                     <span class="text-muted">No documents</span>
                                 @endif
                             </td>

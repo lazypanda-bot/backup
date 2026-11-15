@@ -89,6 +89,7 @@ class AppointmentSchedulingService
                         . $slotUtc->addMinutes(max(1, (int) config('appointments.slot_duration_minutes', 60)))
                             ->setTimezone($clientZone)->format('g:i A'),
                     'local_time' => $slotUtc->setTimezone($clientZone)->format('H:i'),
+                    'professional_time' => $professionalLocal->format('H:i'),
                     'available' => $available,
                 ];
             }

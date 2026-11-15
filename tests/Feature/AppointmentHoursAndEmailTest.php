@@ -45,6 +45,22 @@ class AppointmentHoursAndEmailTest extends TestCase
         }
     }
 
+    public function test_slots_keep_professional_hours_when_displayed_in_another_timezone(): void
+    {
+        [, , $assignment] = $this->listing();
+        $professionalStart = CarbonImmutable::now('Asia/Manila')->addDays(7)->startOfDay()->setTime(8, 0);
+        $clientStart = $professionalStart->setTimezone('America/Los_Angeles');
+        $slots = app(AppointmentSchedulingService::class)->daySlots(
+            $assignment,
+            $clientStart->toDateString(),
+            'America/Los_Angeles'
+        );
+        $morningSlot = collect($slots)->firstWhere('professional_time', '08:00');
+
+        $this->assertNotNull($morningSlot);
+        $this->assertNotSame('08:00', $morningSlot['local_time']);
+    }
+
     public function test_all_staff_modes_can_block_working_intervals_or_whole_days(): void
     {
         Mail::fake();

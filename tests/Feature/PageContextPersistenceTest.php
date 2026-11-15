@@ -26,7 +26,7 @@ class PageContextPersistenceTest extends TestCase
             ->assertHeader('Location', $returnTo);
         $this->post(route('admin.users.store'), [
             'name' => 'Added Agent', 'email' => 'added@context.test', 'password' => 'InitialPass1!',
-            'role_name' => 'Agent', 'account_status' => 'Active', '_return_to' => $returnTo,
+            'role_name' => 'Agent', 'account_status' => 'Active', 'license_number' => 'ACC-9988', '_return_to' => $returnTo,
         ])->assertSessionHasNoErrors()->assertHeader('Location', $returnTo);
     }
 

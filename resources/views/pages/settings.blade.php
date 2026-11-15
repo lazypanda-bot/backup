@@ -12,7 +12,6 @@
 	$isClient = $authUser?->normalizedRole() === 'client';
 	$profile = $authUser?->professionalProfile;
 	$credentialLabel = $authUser?->role_name === 'Agent' ? 'Accreditation number' : 'PRC license number';
-	$credentialPlaceholder = $authUser?->role_name === 'Agent' ? 'Accreditation number' : 'PRC license number';
 	$missingCredential = $isProfessional && blank($profile?->license_number);
 @endphp
 
@@ -101,14 +100,15 @@
 										<div>
 											<strong>Profile reminder</strong>
 											<p>
-												Please input your {{ strtolower($credentialLabel) }}.
+												Your {{ strtolower($credentialLabel) }} has not been added yet. Please contact an admin.
 											</p>
 										</div>
 									</div>
 								@endif
 								<div class="form-group">
 									<label for="license_number">{{ $credentialLabel }}</label>
-									<input type="text" id="license_number" name="license_number" value="{{ old('license_number', $profile?->license_number) }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" placeholder="{{ $credentialPlaceholder }}" required>
+									<input type="text" id="license_number" value="{{ $profile?->license_number ?: 'Not yet provided' }}" readonly aria-readonly="true">
+									<small>This number is managed by an admin. Contact an admin if it needs to be corrected.</small>
 								</div>
 								<div class="form-group">
 									<label for="professional_bio">Professional bio</label>
