@@ -392,6 +392,108 @@ class AppointmentSchedulingTest extends TestCase
         ]);
     }
 
+    public function test_selling_a_property_cancels_only_future_active_appointments_and_emails_both_parties(): void
+    {
+        Mail::fake();
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [, $assignment] = $this->createAssignment($professional, 'Sold appointment home');
+        $pending = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(3));
+        $confirmed = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(4));
+        $confirmed->update(['appointment_status' => 'Confirmed']);
+        $past = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->subDay());
+        $completed = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(5));
+        $completed->update(['appointment_status' => 'Completed']);
+
+        $this->actingAs($professional)
+            ->patch(route('admin.properties.status', $assignment->property_id), ['property_status' => 'Sold'])
+            ->assertRedirect();
+
+        $this->assertSame('Cancelled', $pending->fresh()->appointment_status);
+        $this->assertSame('Cancelled', $confirmed->fresh()->appointment_status);
+        $this->assertSame(
+            'The property has been sold, so this appointment is no longer available.',
+            $pending->fresh()->cancellation_reason
+        );
+        $this->assertSame('Pending', $past->fresh()->appointment_status);
+        $this->assertSame('Completed', $completed->fresh()->appointment_status);
+        $this->assertDatabaseHas('app_notifications', [
+            'user_id' => $client->user_id,
+            'title' => 'Appointment cancelled',
+            'appointment_id' => $pending->appointment_id,
+        ]);
+        $this->assertDatabaseHas('app_notifications', [
+            'user_id' => $professional->user_id,
+            'title' => 'Appointment cancelled',
+            'appointment_id' => $pending->appointment_id,
+        ]);
+        Mail::assertQueued(ActivityMail::class, 4);
+        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($client->email)
+            && str_contains($mail->messageBody, 'has been sold')
+            && str_contains($mail->messageBody, 'has been cancelled'));
+        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($professional->email)
+            && str_contains($mail->messageBody, 'has been sold')
+            && str_contains($mail->messageBody, 'automatically cancelled'));
+    }
+
+    public function test_selling_an_admin_listing_emails_its_client_and_listing_owner(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [$property, $assignment] = $this->createAssignment($admin, 'Sold admin listing');
+        $property->update(['listing_mode' => 'admin']);
+        $appointment = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(3));
+
+        $this->actingAs($admin)
+            ->patch(route('admin.properties.status', $property), ['property_status' => 'Sold'])
+            ->assertRedirect();
+
+        $this->assertSame('Cancelled', $appointment->fresh()->appointment_status);
+        Mail::assertQueued(ActivityMail::class, 2);
+        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($client->email));
+        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($admin->email));
+    }
+
+    public function test_editing_a_property_to_sold_also_cancels_its_upcoming_appointments(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [$property, $assignment] = $this->createAssignment($admin, 'Edited sold listing');
+        $property->update(['listing_mode' => 'admin']);
+        $appointment = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(3));
+
+        $this->actingAs($admin)
+            ->put(route('admin.properties.update', $property), [
+                'property_name' => $property->property_name,
+                'property_type' => $property->property_type,
+                'property_description' => $property->property_description,
+                'price' => $property->price,
+                'property_status' => 'Sold',
+                'house_number' => '1',
+                'lot_number' => '2',
+                'street' => $property->street,
+                'city' => $property->city,
+                'province' => $property->province,
+                'lot_area' => 100,
+                'floor_area' => 80,
+                'bedrooms' => 2,
+                'bathrooms' => 1,
+                'parking_spaces' => 1,
+                'number_of_floors' => 2,
+                'property_condition' => 'Good',
+                'year_built' => 2020,
+                'amenities' => '',
+                'lifestyle_tag' => '',
+                'location_tag' => '',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame('Cancelled', $appointment->fresh()->appointment_status);
+        Mail::assertQueued(ActivityMail::class, 2);
+    }
+
     public function test_confirmed_appointment_keeps_status_controls_until_a_terminal_status(): void
     {
         Mail::fake();

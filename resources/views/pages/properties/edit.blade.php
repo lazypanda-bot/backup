@@ -8,7 +8,18 @@
     @php($isSoldListing = $property->property_status === 'Sold')
     <div class="property-edit-page staff-page-surface">
         <a class="property-edit-back" href="{{ route('app.page', ['page' => $isAdmin ? 'property' : 'listings']) }}">&larr; Back to {{ $isAdmin ? 'properties' : 'listings' }}</a>
-        <header class="property-edit-heading"><span>LISTING MANAGEMENT</span><h1>Edit Property</h1><p>Update the listing, property details, and photo gallery.</p></header>
+        <header class="property-edit-heading">
+            <div class="property-edit-heading-copy"><span>LISTING MANAGEMENT</span><h1>Edit Property</h1><p>Update the listing, property details, and photo gallery.</p></div>
+            <label class="property-edit-featured property-edit-featured-header">
+                <input type="hidden" name="featured" value="0" form="propertyEditForm">
+                <input type="checkbox" name="featured" value="1" form="propertyEditForm" aria-label="Feature this listing on the home page" @checked(old('featured', $property->featured))>
+                <span class="property-edit-featured-state" aria-hidden="true">
+                    <span data-featured-state="on">Featured</span>
+                    <span data-featured-state="off">Not featured</span>
+                </span>
+                <span class="property-edit-featured-switch" aria-hidden="true"><span></span></span>
+            </label>
+        </header>
         @if ($property->rejection_note)
             <div class="listing-rejection-note"><strong>Admin requested these changes</strong><p>{{ $property->rejection_note }}</p></div>
         @endif
@@ -16,7 +27,7 @@
             <div class="property-edit-errors" role="alert"><strong>Please review the highlighted form errors.</strong></div>
         @endif
 
-        <form method="POST" action="{{ route('admin.properties.update', $property) }}" enctype="multipart/form-data" class="property-edit-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
+        <form id="propertyEditForm" method="POST" action="{{ route('admin.properties.update', $property) }}" enctype="multipart/form-data" class="property-edit-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
             @csrf @method('PUT')
             <section class="property-edit-section" aria-labelledby="editBasicHeading">
                 <div class="property-edit-section-heading"><span>01</span><div><h2 id="editBasicHeading">Basic information</h2><p>Public listing title, type, price, and status.</p></div></div>
@@ -47,7 +58,7 @@
                             <select name="property_status" required>@foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [(string) $property->property_status])) as $status)<option value="{{ $status }}" @selected(old('property_status', $property->property_status) === $status)>{{ $status }}</option>@endforeach</select>
                         @endif
                     </label>
-                    <label class="property-edit-field property-edit-field-wide"><span>Description</span><textarea name="property_description" rows="4">{{ old('property_description', $property->property_description) }}</textarea></label>
+                    <label class="property-edit-field property-edit-field-wide"><span>Description</span><textarea name="property_description" rows="4" data-auto-grow>{{ old('property_description', $property->property_description) }}</textarea></label>
                 </div>
             </section>
 
@@ -112,7 +123,6 @@
                             @endforeach
                         </select>
                     </label>
-                    <label class="property-edit-featured"><input type="checkbox" name="featured" value="1" @checked(old('featured', $property->featured))><span>Feature this listing on the home page</span></label>
                 </div>
             </section>
 
@@ -128,4 +138,5 @@
 
 @push('scripts')
     <script src="{{ asset('js/property-type-fields.js') }}?v={{ filemtime(public_path('js/property-type-fields.js')) }}" defer></script>
+    <script src="{{ asset('js/property-edit.js') }}?v={{ filemtime(public_path('js/property-edit.js')) }}" defer></script>
 @endpush

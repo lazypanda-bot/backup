@@ -286,7 +286,13 @@ class AppointmentController extends Controller
 			throw ValidationException::withMessages(['preferred_time' => 'The selected time slot is no longer valid. Choose an available slot.']);
 		}
 
-		$appointment = DB::transaction(function () use ($assignment, $scheduling, $slotUtc, $clientTimezone, $validated, $client): Appointment {
+		$appointment = DB::transaction(function () use ($assignment, $scheduling, $slotUtc, $clientTimezone, $validated, $client, $property): Appointment {
+			$lockedProperty = Property::query()->lockForUpdate()->findOrFail($property->property_id);
+			abort_unless($lockedProperty->approval_status === 'Approved', 404);
+			if (! $lockedProperty->acceptsAppointments()) {
+				throw ValidationException::withMessages(['appointment_type' => "This property is {$lockedProperty->property_status}; appointments are closed."]);
+			}
+
 			User::query()->where('user_id', $assignment->user_id)->lockForUpdate()->firstOrFail();
 			$scheduling->assertAvailable($assignment, $slotUtc);
 

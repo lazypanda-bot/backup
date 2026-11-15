@@ -121,14 +121,6 @@
 								</td>
 								<td class="text-end">
 									<div class="listing-row-actions">
-										<form method="POST" action="{{ route('admin.properties.toggle-featured', $property) }}">
-											@csrf
-											@method('PATCH')
-											<button type="submit" class="property-feature-toggle {{ $property->featured ? 'is-featured' : '' }}" aria-pressed="{{ $property->featured ? 'true' : 'false' }}" aria-label="{{ $property->featured ? 'Unfeature' : 'Feature' }} {{ $property->property_name }}">
-												<span class="property-feature-toggle-indicator" aria-hidden="true"></span>
-												{{ $property->featured ? 'Featured' : 'Not featured' }}
-											</button>
-										</form>
 										<div class="au-action-group">
 											<a href="{{ route('staff.properties.show', $property) }}" class="btn-action view" title="View" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>
 											@if ($isSoldListing)

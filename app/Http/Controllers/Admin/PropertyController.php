@@ -10,6 +10,7 @@ use App\Models\AppNotification;
 use App\Services\NotificationService;
 use App\Models\User;
 use App\Models\ReferralCode;
+use App\Services\PropertySaleAppointmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -347,7 +348,7 @@ class PropertyController extends Controller
         );
     }
 
-    public function update(Request $request, Property $property)
+    public function update(Request $request, Property $property, PropertySaleAppointmentService $saleAppointments)
     {
         $user = Auth::user();
         $isAdmin = $user instanceof User && $user->actingRole() === 'admin';
@@ -459,7 +460,9 @@ class PropertyController extends Controller
 
         $this->geocode($property->property_id);
 
+        $cancelledAppointments = 0;
         if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
+            $cancelledAppointments = $saleAppointments->cancelUpcomingAppointments($property);
             NotificationService::soldReviewPrompts($property);
         }
 
@@ -472,11 +475,16 @@ class PropertyController extends Controller
             ], $user);
         }
 
+        $successMessage = $needsApprovalAfterEdit ? 'Listing resubmitted for Admin approval.' : 'Property updated.';
+        if ($cancelledAppointments > 0) {
+            $successMessage .= " {$cancelledAppointments} upcoming appointment(s) were automatically cancelled.";
+        }
+
         return redirect()->route('app.page', ['page' => $isAdmin ? 'property' : 'listings'])
-            ->with('success', $needsApprovalAfterEdit ? 'Listing resubmitted for Admin approval.' : 'Property updated.');
+            ->with('success', $successMessage);
     }
 
-    public function updateStatus(Request $request, Property $property)
+    public function updateStatus(Request $request, Property $property, PropertySaleAppointmentService $saleAppointments)
     {
         $user = Auth::user();
         $isAdmin = $user instanceof User && $user->actingRole() === 'admin' && $property->isManageableByAdmin($user);
@@ -496,11 +504,18 @@ class PropertyController extends Controller
             'sold_at' => $validated['property_status'] === 'Sold' ? ($property->sold_at ?? now()) : null,
         ]);
 
+        $cancelledAppointments = 0;
         if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
+            $cancelledAppointments = $saleAppointments->cancelUpcomingAppointments($property);
             NotificationService::soldReviewPrompts($property);
         }
 
-        return redirect()->back()->with('success', 'Property status updated.');
+        $successMessage = 'Property status updated.';
+        if ($cancelledAppointments > 0) {
+            $successMessage .= " {$cancelledAppointments} upcoming appointment(s) were automatically cancelled.";
+        }
+
+        return redirect()->back()->with('success', $successMessage);
     }
 
     private function authorizeAdmin(): void

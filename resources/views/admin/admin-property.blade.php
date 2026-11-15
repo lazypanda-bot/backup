@@ -86,14 +86,6 @@
                         </td>
                         <td>
                             <div class="listing-row-actions">
-                                <form method="POST" action="{{ route('admin.properties.toggle-featured', $property) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="property-feature-toggle {{ $property->featured ? 'is-featured' : '' }}" aria-pressed="{{ $property->featured ? 'true' : 'false' }}" aria-label="{{ $property->featured ? 'Unfeature' : 'Feature' }} {{ $property->property_name }}">
-                                        <span class="property-feature-toggle-indicator" aria-hidden="true"></span>
-                                        {{ $property->featured ? 'Featured' : 'Not featured' }}
-                                    </button>
-                                </form>
                                 <div class="action-buttons staff-property-actions">
                                     <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                     @if ($status !== 'Sold')
@@ -224,14 +216,6 @@
                         </td>
                         <td>
                             <div class="listing-row-actions">
-                                <form method="POST" action="{{ route('admin.properties.toggle-featured', $property) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="property-feature-toggle {{ $property->featured ? 'is-featured' : '' }}" aria-pressed="{{ $property->featured ? 'true' : 'false' }}" aria-label="{{ $property->featured ? 'Unfeature' : 'Feature' }} {{ $property->property_name }}">
-                                        <span class="property-feature-toggle-indicator" aria-hidden="true"></span>
-                                        {{ $property->featured ? 'Featured' : 'Not featured' }}
-                                    </button>
-                                </form>
                                 <div class="action-buttons staff-property-actions">
                                     <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                     @if ($status !== 'Sold')

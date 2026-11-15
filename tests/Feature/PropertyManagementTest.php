@@ -113,6 +113,32 @@ class PropertyManagementTest extends TestCase
             ->assertSee('id="propertyFilterStatus"', false);
     }
 
+    public function test_admin_can_change_property_status_to_rent_to_own(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $property = Property::create([
+            'user_id' => $admin->user_id,
+            'property_name' => 'Rent to Own Home',
+            'property_type' => 'House & Lot',
+            'street' => '1 Status Street',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 5000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Approved',
+            'listing_mode' => 'admin',
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.properties.status', $property), ['property_status' => 'Rent to Own'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('property_listings', [
+            'property_id' => $property->property_id,
+            'property_status' => 'Rent to Own',
+        ]);
+    }
+
     public function test_professional_owner_and_admin_can_toggle_featured_state_but_other_professionals_cannot(): void
     {
         $owner = User::factory()->create(['role_name' => 'Agent']);
@@ -343,9 +369,15 @@ class PropertyManagementTest extends TestCase
             ->assertSee('Amenities (comma separated)')
             ->assertSee('Property photos')
             ->assertSee('name="property_type"', false)
+            ->assertSee('name="property_description"', false)
+            ->assertSee('data-auto-grow', false)
             ->assertSee('name="lot_area"', false)
             ->assertSee('name="images[]"', false)
-            ->assertSee('name="featured"', false);
+            ->assertSee('name="featured"', false)
+            ->assertSee('property-edit-featured-header', false)
+            ->assertSee('form="propertyEditForm"', false)
+            ->assertSee('property-edit-featured-switch', false)
+            ->assertSee('data-featured-state="off"', false);
     }
 
     public function test_admin_edit_updates_complete_listing_details_and_images(): void
