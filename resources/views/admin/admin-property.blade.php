@@ -366,6 +366,7 @@ document.querySelectorAll('[data-copy-referral]').forEach(function (button) {
             button.setAttribute('aria-label', 'Referral link copied');
             button.title = 'Referral link copied';
             window.lucide?.createIcons();
+            window.showToast?.('Referral link copied successfully', 'success', 5000);
             window.setTimeout(function () {
                 if (!button.isConnected) return;
                 button.innerHTML = '<i data-lucide="copy" aria-hidden="true"></i>';

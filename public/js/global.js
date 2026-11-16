@@ -199,6 +199,37 @@ document.addEventListener('DOMContentLoaded', () => {
         return openConfirmation(target);
     };
 
+    window.showToast = (message, type = 'success', duration = 5000) => {
+        const stack = document.querySelector('.flash-toast-stack') || (() => {
+            const container = document.createElement('div');
+            container.className = 'flash-toast-stack';
+            container.setAttribute('aria-live', 'polite');
+            container.setAttribute('aria-atomic', 'true');
+            document.body.appendChild(container);
+            return container;
+        })();
+
+        const toast = document.createElement('div');
+        toast.className = `flash-toast flash-toast-${type}`;
+        toast.setAttribute('role', ['error', 'warning'].includes(type) ? 'alert' : 'status');
+        toast.innerHTML = `
+            <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+            <span>${message}</span>
+            <button type="button" class="flash-toast-close" aria-label="Dismiss notification">&times;</button>
+        `;
+
+        stack.appendChild(toast);
+
+        const close = () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(18px)';
+            window.setTimeout(() => toast.remove(), 180);
+        };
+
+        toast.querySelector('.flash-toast-close')?.addEventListener('click', close);
+        window.setTimeout(close, duration);
+    };
+
     document.addEventListener('click', (event) => {
         const submitter = event.target.closest('button[type="submit"], input[type="submit"]');
         if (submitter?.form) submitter.form.__confirmSubmitter = submitter;
