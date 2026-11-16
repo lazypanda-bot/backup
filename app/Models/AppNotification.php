@@ -35,6 +35,7 @@ class AppNotification extends Model
         if ($role === 'lead_broker') {
             if ($user->actingRole() === 'admin') {
                 return $query
+                    ->where('app_notifications.user_id', $user->user_id)
                     ->where(function ($q) {
                         $q->where('audience', 'system')
                             ->orWhere('type', 'message');

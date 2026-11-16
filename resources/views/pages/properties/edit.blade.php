@@ -24,7 +24,10 @@
             <div class="listing-rejection-note"><strong>Admin requested these changes</strong><p>{{ $property->rejection_note }}</p></div>
         @endif
         @if ($errors->any())
-            <div class="property-edit-errors" role="alert"><strong>Please review the highlighted form errors.</strong></div>
+            <div class="property-edit-errors" role="alert">
+                <strong>Please review the form errors before continuing.</strong>
+                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
         @endif
 
         <form id="propertyEditForm" method="POST" action="{{ route('admin.properties.update', $property) }}" enctype="multipart/form-data" class="property-edit-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>

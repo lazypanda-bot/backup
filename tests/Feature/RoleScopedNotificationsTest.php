@@ -139,9 +139,12 @@ class RoleScopedNotificationsTest extends TestCase
     public function test_lead_broker_feed_is_separated_by_mode(): void
     {
         $lead = User::factory()->create(['role_name' => 'Lead Broker']);
+        $otherLead = User::factory()->create(['role_name' => 'Lead Broker']);
         $this->note($lead, ['title' => 'Personal appointment']);
         $this->note($lead, ['title' => 'Oversight event', 'audience' => 'system']);
         $this->note($lead, ['title' => 'Inbox message', 'type' => 'message']);
+        $this->note($otherLead, ['title' => 'Another user oversight', 'audience' => 'system']);
+        $this->note($otherLead, ['title' => 'Another user inbox message', 'type' => 'message']);
 
         $this->actingAs($lead)->withSession(['acting_as' => 'broker'])
             ->get(route('notifications.index'))
@@ -154,7 +157,9 @@ class RoleScopedNotificationsTest extends TestCase
             ->get(route('notifications.index'))
             ->assertSee('Oversight event')
             ->assertSee('Inbox message')
-            ->assertDontSee('Personal appointment');
+            ->assertDontSee('Personal appointment')
+            ->assertDontSee('Another user oversight')
+            ->assertDontSee('Another user inbox message');
         $this->get(route('notifications.count'))->assertJson(['count' => 2]);
     }
 

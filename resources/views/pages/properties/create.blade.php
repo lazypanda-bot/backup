@@ -31,13 +31,16 @@
         <a class="property-create-back" href="{{ route('app.page', ['page' => $propertyIndexPage]) }}">&larr; Back to {{ $propertyIndexLabel }}</a>
         <header class="property-create-heading"><span>LISTING MANAGEMENT</span><h1>Add New Property</h1><p>Enter listing information and publish it to the property catalogue.</p></header>
         @if ($errors->any())
-            <div class="property-create-errors" role="alert"><strong>Please review the form errors before continuing.</strong></div>
+            <div class="property-create-errors" role="alert">
+                <strong>Please review the form errors before continuing.</strong>
+                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
         @endif
 
         <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" class="property-create-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
             @csrf
             <section class="property-create-section" aria-labelledby="createPhotosHeading">
-                <div class="property-create-section-title"><span>01</span><div><h2 id="createPhotosHeading">Property photos</h2><p>Add up to 12 JPG, PNG, or WebP images.</p></div></div>
+                <div class="property-create-section-title"><span>01</span><div><h2 id="createPhotosHeading">Property photos</h2><p>Add up to 12 JPG, PNG, or WebP images (2 MB each).</p></div></div>
                 <button class="property-upload-zone" type="button" id="dropzoneTrigger"><i data-lucide="upload" aria-hidden="true"></i><strong>Choose or drop photos here</strong><span>Clear photos help clients understand the space.</span></button>
                 <input type="file" id="propertyImages" name="images[]" multiple accept="image/png,image/jpeg,image/webp" class="property-upload-input">
                 <div class="property-image-previews" id="imagePreviewContainer" aria-live="polite"></div>
