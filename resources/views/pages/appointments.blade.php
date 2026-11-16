@@ -82,9 +82,21 @@
                     @endif
 
                     <div class="appointment-detail-actions">
-                        @php $reviewable = $selectedAppointment->assignment?->user; @endphp
+                        @php 
+                            $reviewable = $selectedAppointment->assignment?->user;
+                            $userReview = null;
+                            if ($isAppointmentClient && $reviewable) {
+                                $userReview = \App\Models\Review::where('reviewer_id', $viewer->user_id)
+                                    ->where('reviewed_user_id', $reviewable->user_id)
+                                    ->first();
+                            }
+                        @endphp
                         @if ($isAppointmentClient && $selectedAppointment->appointment_status === 'Completed' && $reviewable && in_array($reviewable->role_name, ['Broker', 'Agent', 'Lead Broker'], true))
-                            <a class="settings-appointment-link" href="{{ route('agents.show', $reviewable) }}#reviews">Rate your experience with {{ $reviewable->name }}</a>
+                            @if ($userReview)
+                                <a class="settings-appointment-link" href="{{ route('agents.show', $reviewable) }}#reviews">View my review</a>
+                            @else
+                                <a class="settings-appointment-link" href="{{ route('agents.show', $reviewable) }}#reviews">Rate your experience with {{ $reviewable->name }}</a>
+                            @endif
                         @endif
                         @php($canCancelAppointment = ($isAppointmentClient && $selectedAppointment->appointment_status === 'Pending') || (($isAppointmentAdmin || $isAssignedProfessional) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true)))
                         @php($canUseStatusDropdown = (($isAppointmentAdmin || $isAssignedProfessional) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true)) || $canCancelAppointment)
