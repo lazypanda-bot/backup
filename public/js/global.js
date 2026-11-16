@@ -256,49 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         sidebarBackdrop?.addEventListener('click', closeSidebar);
         
-        // AJAX navigation for sidebar links - only refresh right panel
+        // Simple click handler - just close sidebar, let normal navigation work
         sidebar.querySelectorAll('.nav-link').forEach((link) => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                closeSidebar();
-                
-                const contentArea = document.querySelector('.content-area');
-                if (!contentArea) return;
-                
-                // Add loading state
-                contentArea.style.opacity = '0.6';
-                contentArea.style.pointerEvents = 'none';
-                
-                fetch(link.href, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    // Extract content-area from response
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    const newContent = tempDiv.querySelector('.content-area');
-                    
-                    if (newContent) {
-                        contentArea.innerHTML = newContent.innerHTML;
-                        contentArea.style.opacity = '1';
-                        contentArea.style.pointerEvents = 'auto';
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                })
-                .catch(error => {
-                    console.error('AJAX load failed:', error);
-                    contentArea.style.opacity = '1';
-                    contentArea.style.pointerEvents = 'auto';
-                    window.location.href = link.href;
-                });
-                
-                // Update active link styling
-                sidebar.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-            });
+            link.addEventListener('click', closeSidebar);
         });
         
         document.addEventListener('keydown', (event) => {
