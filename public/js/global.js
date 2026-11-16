@@ -618,30 +618,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.key === 'Escape') closeNotificationMenus();
     });
 
-    if (notificationButtons.length) {
-        window.setInterval(async () => {
-            for (const button of notificationButtons) {
-                try {
-                    const response = await fetch(button.dataset.notificationCountUrl, { headers: { Accept: 'application/json' } });
-                    if (!response.ok) continue;
+    const refreshNotificationCounts = async () => {
+        for (const button of notificationButtons) {
+            try {
+                const response = await fetch(button.dataset.notificationCountUrl, { headers: { Accept: 'application/json' } });
+                if (!response.ok) continue;
 
-                    const { count } = await response.json();
-                    let badge = button.querySelector('[data-notification-count]');
-                    if (count > 0 && !badge) {
-                        badge = document.createElement('span');
-                        badge.className = button.classList.contains('floating-action') ? 'public-notification-badge' : 'notification-count';
-                        badge.dataset.notificationCount = '';
-                        button.prepend(badge);
-                    }
-                    if (badge) {
-                        badge.textContent = count;
-                        badge.hidden = count === 0;
-                    }
-                } catch (error) {
-                    console.error('Unable to refresh notification count.', error);
+                const { count } = await response.json();
+                let badge = button.querySelector('[data-notification-count]');
+                if (count > 0 && !badge) {
+                    badge = document.createElement('span');
+                    badge.className = button.classList.contains('floating-action') ? 'public-notification-badge' : 'notification-count';
+                    badge.dataset.notificationCount = '';
+                    button.prepend(badge);
                 }
+                if (badge) {
+                    badge.textContent = count;
+                    badge.hidden = count === 0;
+                }
+            } catch (error) {
+                console.error('Unable to refresh notification count.', error);
             }
-        }, 10000);
+        }
+    };
+
+    if (notificationButtons.length) {
+        window.setInterval(refreshNotificationCounts, 10000);
+        window.refreshNotificationCounts = refreshNotificationCounts;
     }
 
     const clientMessagesButton = document.getElementById('clientMessagesButton');

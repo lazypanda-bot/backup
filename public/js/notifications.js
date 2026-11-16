@@ -11,4 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     mobile.addEventListener('change', updateMobile);
     page.addEventListener('ljs:split-updated', updateMobile);
     updateMobile();
+
+    // Refresh notification count badge when a notification is viewed
+    page.addEventListener('ljs:split-updated', () => {
+        window.refreshNotificationCounts?.();
+    });
 });
