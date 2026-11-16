@@ -114,13 +114,6 @@
         
         sidebar.querySelectorAll('.nav-link').forEach((link) => {
             link.addEventListener('click', (event) => {
-                // Skip if this is a split-view page (messages, appointments, notifications)
-                // Let normal navigation handle these - their own split-view.js will do the AJAX
-                const href = link.getAttribute('href');
-                if (href.includes('/messages') || href.includes('/appointments') || href.includes('/notifications')) {
-                    return; // Let default navigation happen
-                }
-                
                 event.preventDefault();
                 
                 // Close sidebar
