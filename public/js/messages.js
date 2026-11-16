@@ -329,6 +329,15 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     initializeMessageActions();
     initializeChat();
+    
+    // Remove unread indicator from already-open conversation on initial load
+    const initialActiveThread = document.querySelector('.thread-entry.active');
+    if (initialActiveThread && initialActiveThread.classList.contains('has-unread')) {
+        initialActiveThread.classList.remove('has-unread');
+        const indicator = initialActiveThread.querySelector('.thread-unread-indicator');
+        if (indicator) indicator.remove();
+    }
+    
     document.addEventListener('ljs:split-before-update', (event) => {
         if (event.target.dataset.splitView === 'messages') stopChat();
     });
