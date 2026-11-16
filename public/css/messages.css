@@ -113,6 +113,21 @@
     border-left: 4px solid #3b82f6;
 }
 
+.thread-unread-indicator {
+    position: absolute;
+    top: 12px;
+    right: 50px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+.thread-entry.has-unread .thread-name {
+    font-weight: 600;
+}
+
 .avatar {
     width: 44px;
     height: 44px;

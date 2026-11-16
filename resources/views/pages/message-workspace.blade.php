@@ -24,11 +24,14 @@
                         'conversation' => $item->conversation_id,
                         'panel' => ($panelMode ?? false) ? 1 : null,
                     ]);
+                    $currentUserParticipant = $item->participants->first(fn ($p) => $p->user_id === auth()->id());
+                    $hasUnread = $lastMessage && (!$currentUserParticipant?->last_read_at || $lastMessage->created_at > $currentUserParticipant->last_read_at);
                 @endphp
-                <div class="thread-entry role-{{ $role }} {{ $conversation?->conversation_id === $item->conversation_id ? 'active' : '' }}">
+                <div class="thread-entry role-{{ $role }} {{ $conversation?->conversation_id === $item->conversation_id ? 'active' : '' }} {{ $hasUnread ? 'has-unread' : '' }}">
                     <a href="{{ $conversationUrl }}" class="thread-item role-{{ $role }} {{ $conversation?->conversation_id === $item->conversation_id ? 'active' : '' }}" @if ($conversation?->conversation_id === $item->conversation_id) aria-current="true" @endif>
                         <span class="thread-avatar role-{{ $role }}">{{ strtoupper(substr($name, 0, 1)) }}</span>
                         <div class="thread-info"><div class="thread-header"><span class="thread-name">{{ $name }}</span><span class="thread-time">{{ $lastMessage?->created_at?->diffForHumans(short: true) }}</span></div><div class="thread-snippet">{{ $snippet }}</div></div>
+                        @if ($hasUnread)<span class="thread-unread-indicator" aria-label="Unread message"></span>@endif
                     </a>
                     <div class="thread-menu-wrap">
                         <button type="button" class="thread-menu-toggle" aria-label="Conversation actions" aria-haspopup="menu" aria-expanded="false" data-thread-menu-toggle><i data-lucide="ellipsis" aria-hidden="true"></i></button>

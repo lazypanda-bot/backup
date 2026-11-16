@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        window.setInterval(async () => {
+        const refreshMessageCounts = async () => {
             try {
                 const response = await fetch(clientMessagesButton.dataset.clientMessageCountUrl, { headers: { Accept: 'application/json' } });
                 if (!response.ok) return;
@@ -705,7 +705,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error('Unable to refresh message notification count.', error);
             }
-        }, 10000);
+        };
+
+        window.setInterval(refreshMessageCounts, 10000);
+        window.refreshMessageCounts = refreshMessageCounts;
     }
 
     [

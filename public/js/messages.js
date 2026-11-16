@@ -336,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target.dataset.splitView !== 'messages') return;
         initializeMessageActions(event.detail.panel);
         initializeChat(event.detail.panel);
+        window.refreshMessageCounts?.();
     });
     window.addEventListener('pagehide', () => stopChat());
 });
