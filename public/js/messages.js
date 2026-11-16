@@ -334,6 +334,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.addEventListener('ljs:split-updated', (event) => {
         if (event.target.dataset.splitView !== 'messages') return;
+        
+        const activeThread = document.querySelector('.thread-entry.active');
+        if (activeThread && activeThread.classList.contains('has-unread')) {
+            activeThread.classList.remove('has-unread');
+            const indicator = activeThread.querySelector('.thread-unread-indicator');
+            if (indicator) indicator.remove();
+        }
+        
         initializeMessageActions(event.detail.panel);
         initializeChat(event.detail.panel);
         window.refreshMessageCounts?.();

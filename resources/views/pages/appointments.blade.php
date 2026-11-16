@@ -161,4 +161,5 @@
     <script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-proposals.js') }}?v={{ filemtime(public_path('js/appointment-proposals.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-cancel.js') }}?v={{ filemtime(public_path('js/appointment-cancel.js')) }}" defer></script>
+    <script src="{{ asset('js/appointments.js') }}?v={{ filemtime(public_path('js/appointments.js')) }}" defer></script>
 @endpush
