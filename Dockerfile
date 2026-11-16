@@ -44,4 +44,4 @@ ENV APP_ENV=production \
 
 EXPOSE 8080
 
-CMD ["apache2-foreground"]
+CMD ["sh", "-c", "a2dismod mpm_event && a2dismod mpm_worker && a2enmod mpm_prefork && exec apache2-foreground"]
