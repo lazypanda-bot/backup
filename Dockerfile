@@ -9,7 +9,8 @@ FROM php:8.4-apache AS app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends unzip \
     && docker-php-ext-install pdo_mysql opcache \
-    && a2enmod rewrite headers \
+    && a2dismod mpm_event mpm_worker \
+    && a2enmod mpm_prefork rewrite headers \
     && sed -ri 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf \
     && rm -rf /var/lib/apt/lists/*
 
