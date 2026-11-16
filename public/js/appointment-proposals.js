@@ -82,69 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         let submitting = false;
-        let confirmationDialogShown = false;
         form.addEventListener('submit', async (event) => {
-            // Show confirmation dialog on first submit
-            if (!form.dataset.confirmed && !confirmationDialogShown) {
-                confirmationDialogShown = true;
-                event.preventDefault();
-                
-                // Create confirmation dialog
-                const dialog = document.createElement('div');
-                dialog.className = 'confirmation-dialog-overlay';
-                dialog.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 3100;
-                `;
-                
-                const content = document.createElement('div');
-                content.style.cssText = `
-                    background: white;
-                    border-radius: 8px;
-                    padding: 32px 24px;
-                    max-width: 400px;
-                    text-align: center;
-                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-                `;
-                
-                content.innerHTML = `
-                    <h2 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: #111827;">Are you sure?</h2>
-                    <p style="margin: 0 0 24px; font-size: 14px; color: #6b7280;">Are you sure you want to continue with this action?</p>
-                    <div style="display: flex; gap: 12px; justify-content: center;">
-                        <button class="confirm-no" style="padding: 8px 24px; border: 1px solid #e5e7eb; background: #fecaca; color: #991b1b; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">No</button>
-                        <button class="confirm-yes" style="padding: 8px 24px; border: none; background: #bbf7d0; color: #065f46; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">Yes</button>
-                    </div>
-                `;
-                
-                dialog.appendChild(content);
-                document.body.appendChild(dialog);
-                
-                const noBtn = content.querySelector('.confirm-no');
-                const yesBtn = content.querySelector('.confirm-yes');
-                
-                noBtn.addEventListener('click', () => {
-                    dialog.remove();
-                    confirmationDialogShown = false;
-                });
-                
-                yesBtn.addEventListener('click', () => {
-                    dialog.remove();
-                    form.dataset.confirmed = 'true';
-                    form.dispatchEvent(new Event('submit'));
-                });
-                
-                return;
-            }
-
-            // Actual form submission
+            // Prevent default and handle with fetch
             if (event.defaultPrevented) return;
             event.preventDefault();
             if (submitting) return;
@@ -162,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (excludeSlotUtc && utcSlot.value === excludeSlotUtc) {
                 status.textContent = 'You cannot reschedule to the current appointment time. Choose a different time.';
                 status.style.color = '#ef4444';
-                confirmationDialogShown = false;
                 return;
             }
 
@@ -204,8 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 status.style.color = '#ef4444';
             } finally {
                 submitting = false;
-                confirmationDialogShown = false;
-                delete form.dataset.confirmed;
                 if (submitButton) submitButton.disabled = !utcSlot.value || !preferredTimeValue?.value;
             }
         });

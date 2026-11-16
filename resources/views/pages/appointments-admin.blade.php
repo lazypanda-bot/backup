@@ -144,7 +144,7 @@
                     <p class="appointment-propose-note">The other participant must accept. The scheduled time stays unchanged until then.</p>
                     @include('components.appointment-hours')
                     <div class="appointment-propose-time appointment-reschedule-form-wrap">
-                        <form method="POST" action="{{ route('appointments.proposals.store', $appointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $appointment) }}" data-exclude-slot-utc="{{ $appointment->starts_at_utc?->utc()->format('Y-m-d\TH:i:s\Z') }}">
+                        <form method="POST" action="{{ route('appointments.proposals.store', $appointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $appointment) }}" data-exclude-slot-utc="{{ $appointment->starts_at_utc?->utc()->format('Y-m-d\TH:i:s\Z') }}" data-confirm-message="Are you sure you want to propose this new appointment time?">
                             @csrf
                             <label>New date<input type="date" name="preferred_date" min="{{ now($viewerTimezone)->toDateString() }}" required></label>
                             <label>Time period<select name="time_period" required disabled>
