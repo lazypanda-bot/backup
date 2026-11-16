@@ -15,6 +15,20 @@
 .appointment-master-copy>strong{overflow-wrap:anywhere;color:var(--color-text);font-size:14px;line-height:1.35}
 .appointment-master-copy>small{overflow-wrap:anywhere;color:var(--color-text-muted);font-size:12px;line-height:1.4}
 .appointment-master-copy .appointment-status{justify-self:start;margin-top:2px}
+.appointment-pending-indicator {
+    position: relative;
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+    vertical-align: middle;
+}
+.appointment-master-item.has-pending .appointment-master-copy>strong {
+    font-weight: 600;
+}
 .appointments-master-list .pagination{display:flex;justify-content:center;gap:6px;padding:12px;list-style:none}
 .appointments-master-list .pagination a,.appointments-master-list .pagination span{display:grid;min-width:32px;height:32px;place-items:center;padding:0 8px;border:1px solid var(--color-border);border-radius:6px;color:var(--color-text);font-size:12px;text-decoration:none}
 .appointments-master-list .pagination .active span{border-color:var(--color-primary);background:var(--color-primary);color:#fff}

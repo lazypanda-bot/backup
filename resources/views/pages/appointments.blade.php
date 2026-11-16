@@ -31,8 +31,9 @@
                     $appointmentStart = $appointment->startInTimezone($viewerTimezone);
                     $statusLabel = $appointment->displayStatus();
                     $statusClass = $appointment->displayStatusClass();
+                    $hasPendingProposal = $appointment->proposals()->where('status', 'Pending')->exists();
                 @endphp
-                <a class="appointment-master-item {{ (int) ($selectedAppointment?->appointment_id) === (int) $appointment->appointment_id ? 'active' : '' }}"
+                <a class="appointment-master-item {{ (int) ($selectedAppointment?->appointment_id) === (int) $appointment->appointment_id ? 'active' : '' }} {{ $hasPendingProposal ? 'has-pending' : '' }}"
                    href="{{ route('appointments.index', array_merge(request()->only('status'), ['page' => $appointments->currentPage(), 'selected' => $appointment->appointment_id]), false) }}"
                    @if ((int) ($selectedAppointment?->appointment_id) === (int) $appointment->appointment_id) aria-current="true" @endif>
                     <span class="appointment-date"><strong>{{ $appointmentStart->format('d') }}</strong><span>{{ $appointmentStart->format('M Y') }}</span></span>
@@ -40,6 +41,7 @@
                         <strong>{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</strong>
                         <small>{{ $appointment->contact_name }} · {{ $appointmentStart->format('g:i A') }}</small>
                         <span class="appointment-status status-{{ $statusClass }}">{{ $statusLabel }}</span>
+                        @if ($hasPendingProposal)<span class="appointment-pending-indicator" aria-label="Pending proposal"></span>@endif
                     </span>
                 </a>
             @empty
