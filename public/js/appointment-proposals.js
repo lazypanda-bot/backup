@@ -83,7 +83,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let submitting = false;
         form.addEventListener('submit', async (event) => {
-            // The shared confirmation handler cancels the first submit event.
+            // Show confirmation dialog on first submit
+            if (!form.dataset.confirmed) {
+                event.preventDefault();
+                
+                // Create confirmation dialog
+                const dialog = document.createElement('div');
+                dialog.className = 'confirmation-dialog-overlay';
+                dialog.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                `;
+                
+                const content = document.createElement('div');
+                content.style.cssText = `
+                    background: white;
+                    border-radius: 8px;
+                    padding: 32px 24px;
+                    max-width: 400px;
+                    text-align: center;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                `;
+                
+                content.innerHTML = `
+                    <h2 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: #111827;">Are you sure?</h2>
+                    <p style="margin: 0 0 24px; font-size: 14px; color: #6b7280;">Are you sure you want to continue with this action?</p>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="confirm-no" style="padding: 8px 24px; border: 1px solid #e5e7eb; background: #fecaca; color: #991b1b; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">No</button>
+                        <button class="confirm-yes" style="padding: 8px 24px; border: none; background: #bbf7d0; color: #065f46; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">Yes</button>
+                    </div>
+                `;
+                
+                dialog.appendChild(content);
+                document.body.appendChild(dialog);
+                
+                const noBtn = content.querySelector('.confirm-no');
+                const yesBtn = content.querySelector('.confirm-yes');
+                
+                noBtn.addEventListener('click', () => {
+                    dialog.remove();
+                });
+                
+                yesBtn.addEventListener('click', () => {
+                    dialog.remove();
+                    form.dataset.confirmed = 'true';
+                    form.dispatchEvent(new Event('submit'));
+                });
+                
+                return;
+            }
+
+            // Actual form submission
             if (event.defaultPrevented) return;
             event.preventDefault();
             if (submitting) return;
@@ -124,7 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(data.message || 'An error occurred while submitting.');
                 }
 
-                // Success: reload the page or close the modal to reflect changes
+                // Success: close modal and reload the page to reflect changes
+                const modal = form.closest('[data-reschedule-modal]');
+                if (modal) closeModal(modal);
                 window.location.reload();
 
             } catch (error) {
