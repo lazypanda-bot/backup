@@ -218,7 +218,7 @@ window.LjsAvailability = {
                 if (!response.ok) throw new Error(data.message || 'Could not load available times.');
                 daySlots = (data.all_slots || data.slots || []).map((slot) => ({
                     ...slot,
-                    available: Boolean(slot.available) && slot.value !== excludeSlotUtc,
+                    available: Boolean(slot.available) && (!excludeSlotUtc || slot.value !== excludeSlotUtc),
                 }));
                 const open = daySlots.filter((slot) => slot.available).length;
                 if (open === 0) unavailable.add(requestedDate);
