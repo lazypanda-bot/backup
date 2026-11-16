@@ -137,9 +137,40 @@
                     const nextMainContent = doc.querySelector('.main-content');
                     
                     if (nextMainContent) {
+                        // Extract page-specific styles and scripts from fetched head
+                        const fetchedHead = doc.querySelector('head');
+                        if (fetchedHead) {
+                            // Extract styles added via @push('styles')
+                            const styles = fetchedHead.querySelectorAll('style, link[rel="stylesheet"]');
+                            styles.forEach(style => {
+                                // Check if already in document
+                                if (style.tagName === 'STYLE') {
+                                    if (!Array.from(document.head.querySelectorAll('style')).some(s => s.textContent === style.textContent)) {
+                                        document.head.appendChild(style.cloneNode(true));
+                                    }
+                                } else if (style.tagName === 'LINK') {
+                                    if (!document.head.querySelector(`link[href="${style.href}"]`)) {
+                                        document.head.appendChild(style.cloneNode(true));
+                                    }
+                                }
+                            });
+                        }
+                        
                         mainContent.replaceWith(nextMainContent);
                         window.lucide?.createIcons();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        // Extract and execute scripts from fetched main-content
+                        const scripts = nextMainContent.querySelectorAll('script');
+                        scripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = oldScript.textContent;
+                            newScript.type = oldScript.type;
+                            if (oldScript.src) newScript.src = oldScript.src;
+                            if (oldScript.async) newScript.async = true;
+                            if (oldScript.defer) newScript.defer = true;
+                            document.body.appendChild(newScript);
+                        });
                         
                         // Update active link
                         sidebar.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
