@@ -82,9 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         let submitting = false;
+        let confirmationDialogShown = false;
         form.addEventListener('submit', async (event) => {
             // Show confirmation dialog on first submit
-            if (!form.dataset.confirmed) {
+            if (!form.dataset.confirmed && !confirmationDialogShown) {
+                confirmationDialogShown = true;
                 event.preventDefault();
                 
                 // Create confirmation dialog
@@ -100,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    z-index: 1000;
+                    z-index: 3100;
                 `;
                 
                 const content = document.createElement('div');
@@ -130,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 noBtn.addEventListener('click', () => {
                     dialog.remove();
+                    confirmationDialogShown = false;
                 });
                 
                 yesBtn.addEventListener('click', () => {
@@ -151,6 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 status.style.color = '#ef4444';
                 if (date.value) period.focus();
                 else date.focus();
+                return;
+            }
+
+            // Validate that the proposed slot is not the current appointment's time
+            const excludeSlotUtc = form.dataset.excludeSlotUtc;
+            if (excludeSlotUtc && utcSlot.value === excludeSlotUtc) {
+                status.textContent = 'You cannot reschedule to the current appointment time. Choose a different time.';
+                status.style.color = '#ef4444';
+                confirmationDialogShown = false;
                 return;
             }
 
@@ -192,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 status.style.color = '#ef4444';
             } finally {
                 submitting = false;
+                confirmationDialogShown = false;
                 delete form.dataset.confirmed;
                 if (submitButton) submitButton.disabled = !utcSlot.value || !preferredTimeValue?.value;
             }

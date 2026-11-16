@@ -9,6 +9,11 @@ window.LjsAvailability = {
         const today = new Date(ty, tm - 1, td);
         const maxDate = new Date(ty, tm - 1, td + 44);
 
+        // Debug: log exclude slot
+        if (excludeSlotUtc) {
+            console.debug('[Availability Picker] Will exclude slot:', excludeSlotUtc);
+        }
+
         let unavailable = new Set();
         // let datesLoaded = false;
         let dateRequest = null;
@@ -220,6 +225,17 @@ window.LjsAvailability = {
                     ...slot,
                     available: Boolean(slot.available) && (!excludeSlotUtc || slot.value !== excludeSlotUtc),
                 }));
+                // Debug: log excluded slot
+                if (excludeSlotUtc) {
+                    const excluded = daySlots.find(s => s.value === excludeSlotUtc);
+                    if (excluded) {
+                        console.debug('[Appointment Proposal] Current appointment slot excluded:', {
+                            value: excludeSlotUtc,
+                            label: excluded.label,
+                            slotWasAvailable: Boolean(excluded.available)
+                        });
+                    }
+                }
                 const open = daySlots.filter((slot) => slot.available).length;
                 if (open === 0) unavailable.add(requestedDate);
                 else unavailable.delete(requestedDate);
