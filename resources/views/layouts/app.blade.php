@@ -218,14 +218,6 @@
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-list">
-                    <li><a href="tel:+639213456789"><i data-lucide="phone" aria-hidden="true"></i> +63 921 345 6789</a></li>
-                    <li><a href="mailto:ljsrealty@gmail.com"><i data-lucide="mail" aria-hidden="true"></i> ljsrealty@gmail.com</a></li>
-                    <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Contact Us</h4>
-                <ul class="contact-list">
                     @if(!empty($contactInfo['address']))
                         <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>{{ $contactInfo['address'] }}</span></li>
                     @endif

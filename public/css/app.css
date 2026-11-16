@@ -807,12 +807,10 @@ body.client-messages-open .floating-actions { z-index: 1302; }
 .site-footer.site-footer-full { padding: 36px 24px 32px; }
 .site-footer-full .footer-grid { display: grid; grid-template-columns: 1.3fr 1fr 1.4fr 1fr; align-items: start; gap: 32px; max-width: 1100px; }
 .site-footer-full .footer-col { min-width: 0; gap: 10px; }
-.site-footer-full .footer-col:last-child { gap: 2px; }
 .site-footer-full .brand-col { align-items: center; text-align: center; }
 .site-footer-full .footer-logo { height: 76px; }
 .site-footer-full .footer-tagline { margin: 8px 0 0; font-size: 12px; }
 .site-footer-full .footer-col h4 { margin: 0 0 6px; font-size: 14px; }
-.site-footer-full .footer-col:last-child h4 { margin: 0 0 2px; }
 .site-footer-full .footer-col ul { gap: 10px; }
 .site-footer-full .footer-col ul li a, .site-footer-full .contact-list li { display: inline-flex; align-items: flex-start; gap: 8px; color: #111827; font-size: 13px; transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease; }
 .site-footer-full .footer-col ul li a:hover, .site-footer-full .contact-list a:hover, .site-footer-full .footer-social-link:hover { color: #1d4ed8; opacity: 1; transform: translateY(-1px); }
