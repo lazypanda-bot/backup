@@ -106,4 +106,51 @@
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
     else initialize();
+    
+    // Handle sidebar navigation - refresh only .main-content (right side)
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.querySelector('[data-sidebar]');
+        if (!sidebar) return;
+        
+        sidebar.querySelectorAll('.nav-link').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                
+                // Close sidebar
+                const closeButton = document.querySelector('[data-sidebar-close]');
+                if (closeButton) closeButton.click();
+                else {
+                    sidebar.classList.remove('is-open');
+                    document.getElementById('sidebarBackdrop')?.classList.remove('is-open');
+                }
+                
+                const mainContent = document.querySelector('.main-content');
+                if (!mainContent) return;
+                
+                fetch(link.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const nextMainContent = doc.querySelector('.main-content');
+                    
+                    if (nextMainContent) {
+                        mainContent.replaceWith(nextMainContent);
+                        window.lucide?.createIcons();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        // Update active link
+                        sidebar.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                    }
+                })
+                .catch(err => {
+                    console.error('AJAX failed:', err);
+                    window.location.href = link.href;
+                });
+            });
+        });
+    });
 })();
