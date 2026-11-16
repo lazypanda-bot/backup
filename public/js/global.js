@@ -255,56 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
         });
         sidebarBackdrop?.addEventListener('click', closeSidebar);
-        
-        // AJAX navigation for sidebar - only refresh content-area
-        sidebar.querySelectorAll('.nav-link').forEach((link) => {
-            link.addEventListener('click', (event) => {
-                // Check if this is a split-view link (messages, notifications, appointments)
-                // If so, let normal navigation handle it
-                const href = link.getAttribute('href');
-                if (href.includes('/messages') || href.includes('/notifications') || href.includes('/appointments')) {
-                    closeSidebar();
-                    return;
-                }
-                
-                event.preventDefault();
-                closeSidebar();
-                
-                const contentArea = document.querySelector('.content-area');
-                if (!contentArea) return;
-                
-                fetch(link.href, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(res => res.text())
-                .then(html => {
-                    // Parse the HTML
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.querySelector('.content-area');
-                    
-                    if (newContent) {
-                        // Replace content
-                        contentArea.innerHTML = newContent.innerHTML;
-                        
-                        // Re-run Lucide icons
-                        window.lucide?.createIcons();
-                        
-                        // Scroll to top
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                })
-                .catch(err => {
-                    console.error('AJAX failed:', err);
-                    window.location.href = link.href;
-                });
-                
-                // Update active link styling
-                sidebar.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-            });
-        });
-        
+        sidebar.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', closeSidebar));
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') closeSidebar();
         });
