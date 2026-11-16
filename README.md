@@ -83,7 +83,7 @@ Build production assets with `npm run build`. Check dependencies with `composer 
 ## Production checklist
 
 - Set `APP_ENV=production`, `APP_DEBUG=false`, a strong `APP_KEY`, the public `APP_URL`, and production database credentials.
-- Configure a real SMTP transport and `CONTACT_EMAIL` before launch. Set `COMPANY_NAME`, `COMPANY_PHONE`, `COMPANY_EMAIL`, `COMPANY_ADDRESS`, `COMPANY_CITY`, and optional social URLs in `.env` to keep the public footer and contact page aligned with the live business details. Login and client registration use email OTP verification; message, appointment, and contact-form emails are processed by the queue worker.
+- Configure email delivery and `CONTACT_EMAIL` before launch. Railway Free, Trial, and Hobby plans block outbound SMTP; use an HTTPS email API such as Resend with `MAIL_MAILER=resend`, `RESEND_API_KEY`, and a sender address on a verified domain. Set `COMPANY_NAME`, `COMPANY_PHONE`, `COMPANY_EMAIL`, `COMPANY_ADDRESS`, `COMPANY_CITY`, and optional social URLs in `.env` to keep the public footer and contact page aligned with the live business details. Login and client registration use email OTP verification; message, appointment, and contact-form emails are processed by the queue worker.
 - Run a supervised worker with `php artisan queue:work --tries=3`; monitor failed jobs with `php artisan queue:failed` and retry them after resolving the cause.
 - Use HTTPS, configure the web server to serve `public/`, and run `php artisan storage:link`.
 - After deploying this attachment change, run `php artisan messages:secure-attachments` once to move existing message files from public to private storage.
@@ -93,7 +93,7 @@ Build production assets with `npm run build`. Check dependencies with `composer 
 
 ## Configuration notes
 
-Profile photos and property images use Laravel's public disk. Message attachments use private local storage and can be downloaded only by conversation participants. Professional credential documents are stored on the private local disk and can be downloaded only by an Admin. New staff accounts receive an initial password from the Admin and can change it from Settings. For production email delivery, set `MAIL_MAILER=smtp` and provide `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`; set `CONTACT_EMAIL` to the address that should receive website inquiries and optionally define `COMPANY_*` values for the public footer and contact page.
+Profile photos and property images use Laravel's public disk. Message attachments use private local storage and can be downloaded only by conversation participants. Professional credential documents are stored on the private local disk and can be downloaded only by an Admin. New staff accounts receive an initial password from the Admin and can change it from Settings. For Railway Free, Trial, or Hobby email delivery, use Resend's HTTPS API with `MAIL_MAILER=resend`, `RESEND_API_KEY`, and `MAIL_FROM_ADDRESS` on a verified domain; SMTP is unavailable on those plans. Other hosting platforms that permit SMTP can use `MAIL_MAILER=smtp` with `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`. Set `CONTACT_EMAIL` to the address that should receive website inquiries and optionally define `COMPANY_*` values for the public footer and contact page.
 
 ## Google Cloud Run demo deployment
 
