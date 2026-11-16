@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Models\AppNotification;
+use App\Mail\Transport\GmailApiTransport;
 use App\Services\AppointmentReminderService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +29,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Mail::extend('gmail-api', function (array $config): GmailApiTransport {
+            return new GmailApiTransport(
+                clientId: config('services.gmail_api.client_id'),
+                clientSecret: config('services.gmail_api.client_secret'),
+                refreshToken: config('services.gmail_api.refresh_token'),
+            );
+        });
+
         // Force HTTPS only for requests that actually arrive through ngrok.
         $requestHost = request()->getHost();
         if (str_contains($requestHost, 'ngrok-free.dev') || str_contains($requestHost, 'ngrok.io')) {
