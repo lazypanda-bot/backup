@@ -31,6 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_PROTO,
+        );
+
         // Previous registration: $middleware->web(append: [\App\Http\Middleware\PreventAuthenticatedPageCaching::class]);
         $middleware->web(append: [\App\Http\Middleware\PreventAuthenticatedPageCaching::class, \App\Http\Middleware\PreservePageContext::class]);
         $middleware->redirectGuestsTo(function () {

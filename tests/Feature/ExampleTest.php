@@ -18,4 +18,18 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_assets_use_https_when_request_is_forwarded_by_a_tls_terminating_proxy(): void
+    {
+        $response = $this->withServerVariables([
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+        ])->get('/');
+        $assetUrl = asset('css/global.css');
+
+        $response->assertOk()
+            ->assertSee('href="'.$assetUrl, false)
+            ->assertDontSee('href="'.preg_replace('/^https:/', 'http:', $assetUrl), false);
+
+        $this->assertStringStartsWith('https://', $assetUrl);
+    }
 }
