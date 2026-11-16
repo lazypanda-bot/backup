@@ -305,6 +305,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Replace content
                         contentArea.innerHTML = newContent.innerHTML;
                         
+                        // Execute any inline scripts in the new content
+                        const scripts = contentArea.querySelectorAll('script');
+                        scripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = oldScript.textContent;
+                            newScript.type = oldScript.type;
+                            if (oldScript.src) newScript.src = oldScript.src;
+                            if (oldScript.async) newScript.async = true;
+                            if (oldScript.defer) newScript.defer = true;
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        });
+                        
                         // Scroll to top
                         contentArea.scrollTop = 0;
                         window.scrollTo({ top: 0, behavior: 'smooth' });
