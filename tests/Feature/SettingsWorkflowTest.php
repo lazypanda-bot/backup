@@ -24,14 +24,14 @@ class SettingsWorkflowTest extends TestCase
         $response = $this->actingAs($user)->post(route('settings.profile.update'), [
             'name' => 'Updated Name',
             'email' => $user->email,
-            'contact_number' => '555-0100',
+            'contact_number' => '0917-123-4567',
             'profile_photo' => UploadedFile::fake()->create('profile.png', 10, 'image/png'),
         ]);
 
         $response->assertRedirect();
         $user->refresh();
         $this->assertSame('Updated Name', $user->name);
-        $this->assertSame('5550100', $user->contact_number);
+        $this->assertSame('09171234567', $user->contact_number);
         $this->assertNotEmpty($user->profile_photo);
         $this->assertTrue(Storage::disk('public')->exists($user->profile_photo));
     }
@@ -185,18 +185,20 @@ class SettingsWorkflowTest extends TestCase
 
     public function test_professionals_cannot_deactivate_their_own_accounts(): void
     {
-        $professional = User::factory()->create(['role_name' => 'Agent', 'password' => 'CurrentPass1!']);
+        foreach (['Admin', 'Lead Broker', 'Broker', 'Agent'] as $role) {
+            $professional = User::factory()->create(['role_name' => $role, 'password' => 'CurrentPass1!']);
 
-        $this->actingAs($professional)->get(route('app.page', ['page' => 'settings']))
-            ->assertOk()
-            ->assertDontSee('data-open-delete-account', false);
+            $this->actingAs($professional)->get(route('app.page', ['page' => 'settings']))
+                ->assertOk()
+                ->assertDontSee('data-open-delete-account', false);
 
-        $this->delete(route('settings.account.destroy'), [
-            'current_password' => 'CurrentPass1!',
-            'confirmation' => 'DELETE',
-        ])->assertForbidden();
+            $this->delete(route('settings.account.destroy'), [
+                'current_password' => 'CurrentPass1!',
+                'confirmation' => 'DELETE',
+            ])->assertForbidden();
 
-        $this->assertDatabaseHas('users', ['user_id' => $professional->user_id]);
-        $this->assertAuthenticatedAs($professional);
+            $this->assertDatabaseHas('users', ['user_id' => $professional->user_id]);
+            $this->assertAuthenticatedAs($professional);
+        }
     }
 }

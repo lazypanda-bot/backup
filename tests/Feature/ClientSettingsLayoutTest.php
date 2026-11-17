@@ -43,7 +43,16 @@ class ClientSettingsLayoutTest extends TestCase
             ->assertDontSee('id="password-tab"', false);
 
         $this->actingAs($agent)->get(route('app.page', ['page' => 'settings']))
-            ->assertOk()->assertSee('id="password-tab"', false)->assertSee('data-open-delete-account', false);
+            ->assertOk()
+            ->assertSee('id="password-tab"', false)
+            ->assertSee('data-no-confirm', false)
+            ->assertDontSee('data-open-delete-account', false);
+
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $this->actingAs($admin)->get(route('app.page', ['page' => 'settings']))
+            ->assertOk()
+            ->assertSee('id="password-tab"', false)
+            ->assertDontSee('data-open-delete-account', false);
     }
 
     public function test_floating_appointment_icon_lists_only_active_appointments_before_messages_and_bell(): void

@@ -370,7 +370,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
         abort_unless($user instanceof User, 403);
-        abort_if($user->isProfessional(), 403, 'Professionals cannot deactivate their own accounts. Contact an admin.');
+        abort_unless($user->normalizedRole() === 'client', 403, 'Only client accounts can be self-deactivated. Contact an admin for assistance.');
 
         $request->validate([
             'current_password' => ['required', 'current_password'],

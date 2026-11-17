@@ -575,7 +575,15 @@ class AppointmentController extends Controller
             'body' => $user->name . ' blocked off ' . $validated['date'] . $timeInfo . '.' . $reasonText,
         ], $user);
 
-        return redirect()->back()->with('success', 'Date blocked successfully and admins notified.');
+        $blockedDate = \Carbon\CarbonImmutable::parse($validated['date'], $validated['timezone']);
+
+        return redirect()
+            ->route('app.page', [
+                'page' => 'dashboard',
+                'month' => $blockedDate->month,
+                'year' => $blockedDate->year,
+            ])
+            ->with('success', 'Date blocked successfully and admins notified.');
     }
 
 	private function ownerAssignment(Property $property): PropertyAssign

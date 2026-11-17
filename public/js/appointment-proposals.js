@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const modals = [...document.querySelectorAll('[data-reschedule-modal]')];
     let activeModal = null;
 
     const closeModal = (modal) => {
@@ -8,7 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
         modal._opener?.focus();
     };
 
-    modals.forEach((modal) => {
+    const initializeModals = (scope = document) => scope.querySelectorAll('[data-reschedule-modal]').forEach((modal) => {
+        if (modal.dataset.rescheduleInitialized) return;
+        modal.dataset.rescheduleInitialized = 'true';
         document.body.appendChild(modal);
         modal.addEventListener('click', (event) => {
             if (event.target === modal) closeModal(modal);
@@ -32,16 +33,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         modal.querySelector('[data-reschedule-close]')?.addEventListener('click', () => closeModal(modal));
     });
+    initializeModals();
 
-    document.querySelectorAll('[data-open-reschedule-modal]').forEach((trigger) => {
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest?.('[data-open-reschedule-modal]');
+        if (!trigger) return;
         const modal = document.getElementById(trigger.dataset.openRescheduleModal);
         if (!modal) return;
-        trigger.addEventListener('click', () => {
-            activeModal = modal;
-            modal._opener = trigger;
-            modal.hidden = false;
-            modal.querySelector('[data-reschedule-close]')?.focus();
-        });
+        activeModal = modal;
+        modal._opener = trigger;
+        modal.hidden = false;
+        modal.querySelector('[data-reschedule-close]')?.focus();
     });
 
     document.addEventListener('keydown', (event) => {
@@ -147,6 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     initializeForms();
+    document.addEventListener('ljs:auto-filter-before-update', () => {
+        document.querySelectorAll('[data-reschedule-modal]').forEach((modal) => {
+            modal.querySelectorAll('[data-proposal-availability-url]').forEach((form) => form._availability?.destroy());
+            modal.remove();
+        });
+    });
+    document.addEventListener('ljs:auto-filter-updated', (event) => {
+        initializeForms(event.detail.panel);
+        initializeModals(event.detail.panel);
+    });
     document.addEventListener('ljs:split-before-update', (event) => {
         event.target.querySelectorAll('[data-proposal-availability-url]').forEach((form) => form._availability?.destroy());
     });

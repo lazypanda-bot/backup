@@ -227,7 +227,7 @@
 
             field.addEventListener('input', () => {
                 window.clearTimeout(searchTimer);
-                searchTimer = window.setTimeout(submitFilters, 350);
+                searchTimer = window.setTimeout(submitFilters, 600);
             });
         });
 

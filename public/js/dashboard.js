@@ -79,41 +79,33 @@ document.addEventListener('DOMContentLoaded', function () {
             customTooltip.className = 'custom-day-tooltip';
             customTooltip.replaceChildren(tooltipDate);
 
-            dayAppointments.forEach(app => {
+            dayAppointments.forEach((app) => {
                 const badge = document.createElement('span');
                 badge.className = 'appointment-badge appointment-event';
-                badge.style.width = '7px';
-                badge.style.height = '7px';
-                badge.style.borderRadius = '50%';
-                badge.style.backgroundColor = '#3b82f6';
-                badge.style.display = 'inline-block';
+                badge.classList.add('calendar-cell-entry');
+                badge.textContent = formatTime(app.preferred_time) || 'Appointment';
                 badgeContainer.appendChild(badge);
 
                 const appointmentLine = document.createElement('div');
-                const appointmentTitle = app.property_name
-                    ? `${app.contact_name || 'Appointment'} · ${app.property_name}`
-                    : (app.contact_name || 'Appointment');
-                appointmentLine.textContent = `${app.preferred_time ? app.preferred_time + ' - ' : ''}${appointmentTitle}`;
+                appointmentLine.textContent = formatTime(app.preferred_time) || 'Appointment';
                 customTooltip.appendChild(appointmentLine);
             });
 
             dayBlockedDates.forEach((blocked) => {
                 const badge = document.createElement('span');
                 badge.className = 'appointment-badge blocked-date-event';
-                badge.style.width = '7px';
-                badge.style.height = '7px';
-                badge.style.borderRadius = '50%';
-                badge.style.backgroundColor = '#ef4444';
-                badge.style.display = 'inline-block';
+                badge.classList.add('calendar-cell-entry');
                 badgeContainer.appendChild(badge);
                 cell.classList.add('calendar-cell-blocked');
 
-                const blocker = blocked.blocked_by ? `Blocked by ${blocked.blocked_by}` : 'Blocked date';
-                const reason = blocked.reason ? `: ${blocked.reason}` : '';
+                const reason = blocked.reason || '';
                 const startTime = blocked.start_time ? formatTime(blocked.start_time) : 'All day';
                 const endTime = blocked.end_time ? ` - ${formatTime(blocked.end_time)}` : '';
+                badge.textContent = reason || `${startTime}${endTime}`;
                 const blockedLine = document.createElement('div');
-                blockedLine.textContent = `[${blocker}${reason}] ${startTime}${endTime}`;
+                blockedLine.textContent = reason
+                    ? `${reason} · ${startTime}${endTime}`
+                    : `${startTime}${endTime}`;
                 customTooltip.appendChild(blockedLine);
             });
 

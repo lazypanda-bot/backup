@@ -304,6 +304,20 @@
 }
 .appointment-badge.appointment-event { background-color: #2563eb; }
 .appointment-badge.blocked-date-event { background-color: #dc2626; }
+.calendar-cell-entry {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 3px 5px;
+    border-radius: 4px !important;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .calendar-cell-blocked { background: #fff1f2; border-color: #fda4af; }
 .dash-sidebar {
     display: flex;

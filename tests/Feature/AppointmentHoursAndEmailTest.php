@@ -69,7 +69,12 @@ class AppointmentHoursAndEmailTest extends TestCase
             $date = now('Asia/Manila')->addDays(7)->toDateString();
             $this->actingAs($owner)->withSession(['acting_as' => $mode]);
             $this->post(route('appointments.block-date'), ['date' => $date, 'time_slot' => 'morning'])
-                ->assertRedirect()->assertSessionHasNoErrors();
+                ->assertRedirect(route('app.page', [
+                    'page' => 'dashboard',
+                    'month' => CarbonImmutable::parse($date)->month,
+                    'year' => CarbonImmutable::parse($date)->year,
+                ]))
+                ->assertSessionHasNoErrors();
             $slots = app(AppointmentSchedulingService::class)->daySlots($assignment, $date, 'Asia/Manila');
             $this->assertFalse(collect($slots)->firstWhere('local_time', '08:00')['available']);
             $this->assertFalse(collect($slots)->firstWhere('local_time', '11:00')['available']);

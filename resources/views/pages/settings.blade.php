@@ -139,8 +139,7 @@
 					@include('pages.settings._password-form')
 				@endif
 
-				@if (! $isProfessional)
-				    {{-- **FOR DELETE ACTIONS** Professionals cannot delete their accounts; admins manage their status. --}}
+				@if ($isClient)
 				    @include('pages.settings._delete-account')
 				@endif
 			</section>

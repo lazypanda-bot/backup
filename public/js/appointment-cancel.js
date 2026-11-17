@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
         select.value = '';
     }, true);
 
-    document.querySelectorAll('[data-cancel-appointment]').forEach((button) => {
-        button.addEventListener('click', () => {
-            openModal(button, button.dataset.action || '', button.dataset.context || '');
-        });
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest?.('[data-cancel-appointment]');
+        if (!button) return;
+        openModal(button, button.dataset.action || '', button.dataset.context || '');
     });
 
     modal.querySelectorAll('[data-cancel-dismiss]').forEach((button) => {

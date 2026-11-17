@@ -86,11 +86,14 @@
 
     <script src="{{ asset('js/auto-filter.js') }}?v={{ filemtime(public_path('js/auto-filter.js')) }}" defer></script>
     <script>
-        document.querySelectorAll('form[data-confirm-delete]').forEach((form) => {
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                if (await window.appConfirm('Delete this review? This action cannot be undone.')) form.submit();
-            });
+        document.addEventListener('submit', async (event) => {
+            const form = event.target.closest?.('form[data-confirm-delete]');
+            if (!form || form.dataset.confirmed === 'true') return;
+            event.preventDefault();
+            if (await window.appConfirm('Delete this review? This action cannot be undone.')) {
+                form.dataset.confirmed = 'true';
+                form.submit();
+            }
         });
     </script>
 @endsection
