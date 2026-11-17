@@ -11,6 +11,7 @@ class Property extends Model
     use HasFactory, SoftDeletes;
 
     public const DUPLICATE_REJECTION_REASON = 'Same property already listed';
+    public const PRICE_TYPES = ['Per Month', 'Full Price'];
 
     // Explicitly tell Laravel to use your actual database table name
     protected $table = 'property_listings';
