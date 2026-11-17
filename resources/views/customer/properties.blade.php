@@ -113,7 +113,7 @@
                     </div>
 
                     <div class="property-card-body">
-                        <div class="property-price">₱ {{ number_format($item->price, 0, '.', ',') }} <small>{{ $item->price_type }}</small></div>
+                        <div class="property-price">₱ {{ number_format($item->price, 0, '.', ',') }}<small>{{ $item->priceSuffix() }}</small></div>
                         <h3 class="property-title">{{ $item->property_name }}</h3>
                         <p class="property-location">{{ $item->city }}, {{ $item->province }}</p>
                         

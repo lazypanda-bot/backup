@@ -56,7 +56,7 @@
                     <tr data-property-card data-property-name="{{ strtolower($property->property_name) }}" data-property-status="{{ $status }}">
                         <td class="staff-property-image-cell"><img src="{{ $imageUrl }}" alt="{{ $property->property_name }}"></td>
                         <td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>ID: P{{ str_pad($property->property_id, 3, '0', STR_PAD_LEFT) }}</small><span class="staff-approval-state state-{{ strtolower($property->approval_status) }}">{{ $property->approval_status }}</span></td>
-                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }} <small>{{ $property->price_type }}</small></td>
+                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}<small>{{ $property->priceSuffix() }}</small></td>
                         <td>{{ $property->property_type }}</td>
                         <td>
                             <form method="POST" action="{{ route('admin.properties.status', $property) }}" class="staff-property-status-form">
@@ -141,7 +141,7 @@
                             <span class="staff-property-image-count">{{ $imageCount }} {{ Str::plural('image', $imageCount) }}</span>
                         </td>
                         <td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>{{ Str::limit($property->property_description, 110) }}</small></td>
-                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }} <small>{{ $property->price_type }}</small></td>
+                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}<small>{{ $property->priceSuffix() }}</small></td>
                         <td>{{ $property->property_type }}</td>
                         <td>{{ $property->user?->name ?? 'Unknown user' }}<small class="staff-property-role">{{ $property->user?->role_name }}</small></td>
                         <td>
@@ -187,7 +187,7 @@
                     <tr>
                         <td class="staff-property-image-cell"><img src="{{ $imageUrl }}" alt="{{ $property->property_name }}"></td>
                         <td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>ID: P{{ str_pad($property->property_id, 3, '0', STR_PAD_LEFT) }}</small><span class="staff-approval-state state-{{ strtolower($property->approval_status) }}">{{ $property->approval_status }}</span></td>
-                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }} <small>{{ $property->price_type }}</small></td>
+                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}<small>{{ $property->priceSuffix() }}</small></td>
                         <td>{{ $property->property_type }}</td>
                         <td>
                             @if ($status === 'Sold')
@@ -357,27 +357,5 @@ document.querySelectorAll('[data-admin-property-tab]').forEach(function (tab) {
     search?.addEventListener('input', apply);
     status?.addEventListener('change', apply);
 })();
-document.querySelectorAll('[data-copy-referral]').forEach(function (button) {
-    button.addEventListener('click', async function () {
-        const referralUrl = button.dataset.copyReferral;
-        try {
-            await navigator.clipboard.writeText(referralUrl);
-            button.innerHTML = '<i data-lucide="check" aria-hidden="true"></i>';
-            button.setAttribute('aria-label', 'Referral link copied');
-            button.title = 'Referral link copied';
-            window.lucide?.createIcons();
-            window.showToast?.('Referral link copied successfully', 'success', 5000);
-            window.setTimeout(function () {
-                if (!button.isConnected) return;
-                button.innerHTML = '<i data-lucide="copy" aria-hidden="true"></i>';
-                button.setAttribute('aria-label', 'Copy referral link');
-                button.title = 'Copy referral link';
-                window.lucide?.createIcons();
-            }, 1600);
-        } catch {
-            window.prompt('Copy this referral link', referralUrl);
-        }
-    });
-});
 </script>
 @endpush

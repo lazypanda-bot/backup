@@ -36,7 +36,6 @@ class PropertyController extends Controller
             'city' => ['required', 'string'],
             'province' => ['required', 'string'],
             'price' => ['required', 'numeric'],
-            'price_type' => ['required', 'string', 'in:' . implode(',', Property::PRICE_TYPES)],
             ...Property::detailRules($request->input('property_type')),
             'parking_spaces' => ['nullable', 'integer', 'min:0'],
             'number_of_floors' => ['nullable', 'integer', 'min:1'],
@@ -69,6 +68,7 @@ class PropertyController extends Controller
         $createdPropertyId = null;
         try {
             DB::transaction(function () use ($request, $validated, $authenticatedUser, $isAdminLister, $lifestyleTagValue, $locationTagValue, $amenityNames, &$storedImagePaths, &$createdPropertyId): void {
+                $propertyStatus = $this->normalizeStatus($validated['property_status']);
                 $property = Property::create([
                     'user_id' => $authenticatedUser->user_id,
                     'property_name' => $validated['property_name'],
@@ -81,9 +81,9 @@ class PropertyController extends Controller
                     'city' => $validated['city'],
                     'province' => $validated['province'],
                     'price' => (int) $validated['price'],
-                    'price_type' => $validated['price_type'],
-                    'property_status' => $this->normalizeStatus($validated['property_status']),
-                    'sold_at' => $this->normalizeStatus($validated['property_status']) === 'Sold' ? now() : null,
+                    'price_type' => Property::priceTypeForStatus($propertyStatus),
+                    'property_status' => $propertyStatus,
+                    'sold_at' => $propertyStatus === 'Sold' ? now() : null,
                     'approval_status' => $isAdminLister ? 'Approved' : 'Pending',
                     'listing_mode' => $isAdminLister ? 'admin' : 'professional',
                     'featured' => $request->boolean('featured'),
@@ -198,11 +198,9 @@ class PropertyController extends Controller
         abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $ownsProperty || $hasApprovedAssignment, 403);
         abort_unless($property->approval_status === 'Approved', 403, 'Referral links are available after Admin approval.');
 
-        $referralOwner = $property->user;
-        abort_unless($referralOwner instanceof User, 422);
-        $referralCode = $this->referralCodeFor($property, $referralOwner);
+        $referralCode = $this->referralCodeFor($property, $user);
 
-        return redirect()->back()->with('success', 'Referral code generated: ' . $referralCode->code);
+        return redirect()->back()->with('success', 'Referral link generated successfully: ' . $referralCode->code);
     }
 
     private function referralCodeFor(Property $property, User $user): ReferralCode
@@ -370,7 +368,6 @@ class PropertyController extends Controller
             'property_type' => ['required', 'string', 'max:100'],
             'property_description' => ['nullable', 'string'],
             'price' => ['required', 'numeric'],
-            'price_type' => ['required', 'string', 'in:' . implode(',', Property::PRICE_TYPES)],
             'property_status' => ['required', 'in:For Sale,For Rent,Rent to Own,Available,Reserved,Pending,Sold,Unavailable'],
             'house_number' => ['nullable', 'string', 'max:255'],
             'lot_number' => ['nullable', 'string', 'max:255'],
@@ -407,7 +404,7 @@ class PropertyController extends Controller
             'property_type' => $validated['property_type'],
             'property_description' => $validated['property_description'] ?? null,
             'price' => $validated['price'],
-            'price_type' => $validated['price_type'],
+            'price_type' => Property::priceTypeForStatus($validated['property_status']),
             'property_status' => $validated['property_status'],
             'sold_at' => $validated['property_status'] === 'Sold' ? ($property->sold_at ?? now()) : null,
             'house_number' => $validated['house_number'] ?? null,
@@ -505,6 +502,7 @@ class PropertyController extends Controller
 
         $property->update([
             'property_status' => $validated['property_status'],
+            'price_type' => Property::priceTypeForStatus($validated['property_status']),
             'sold_at' => $validated['property_status'] === 'Sold' ? ($property->sold_at ?? now()) : null,
         ]);
 

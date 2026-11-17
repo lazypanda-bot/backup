@@ -106,7 +106,7 @@
                                 <tr>
                                     <td class="fw-semibold"><a href="{{ route('staff.properties.show', $property) }}">{{ $property->property_name }}</a></td>
                                     <td>{{ $property->property_type }}</td>
-                                    <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0) }}</td>
+                                    <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0) }}<small>{{ $property->priceSuffix() }}</small></td>
                                     <td>{{ $property->property_status }}</td>
                                     <td><span class="staff-status-pill status-{{ strtolower($property->approval_status) }}">{{ $property->approval_status }}</span></td>
                                 </tr>

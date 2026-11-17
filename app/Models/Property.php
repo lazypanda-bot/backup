@@ -27,6 +27,13 @@ class Property extends Model
         'deleted_at',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Property $property): void {
+            $property->price_type = static::priceTypeForStatus($property->property_status);
+        });
+    }
+
     // Relationships
     public function images()
     {
@@ -80,6 +87,16 @@ class Property extends Model
         }
 
         return 'active';
+    }
+
+    public static function priceTypeForStatus(?string $status): string
+    {
+        return in_array($status, ['For Rent', 'Rent to Own'], true) ? 'Per Month' : 'Full Price';
+    }
+
+    public function priceSuffix(): string
+    {
+        return static::priceTypeForStatus($this->property_status) === 'Per Month' ? '/month' : '';
     }
 
     public static function publicStatusOrderSql(): string

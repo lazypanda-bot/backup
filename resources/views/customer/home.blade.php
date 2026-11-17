@@ -70,7 +70,7 @@
                         </div>
                         <h3>{{ $item->property_name }}</h3>
                         <p class="property-location">{{ $item->property_location }}</p>
-                        <p class="property-price">₱ {{ number_format($item->price, 0, '.', ',') }} <small>{{ $item->price_type }}</small></p>
+                        <p class="property-price">₱ {{ number_format($item->price, 0, '.', ',') }}<small>{{ $item->priceSuffix() }}</small></p>
                         <p class="property-description">{{ Str::limit($item->property_description ?? '', 100) }}</p>
                     </div>
                 </article>            
@@ -136,7 +136,7 @@
                             <!-- Card Body -->
                             <div class="rush-card-body">
                                 <div class="rush-price">
-                                    ₱ {{ number_format($item->price, 0, '.', ',') }} <small>{{ $item->price_type }}</small>
+                                    ₱ {{ number_format($item->price, 0, '.', ',') }}<small>{{ $item->priceSuffix() }}</small>
                                 </div>
                                 
                                 <h3 class="rush-title">

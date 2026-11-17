@@ -85,7 +85,7 @@
 								<td class="staff-property-image-cell"><img src="{{ $imageUrl }}" alt="{{ $property->property_name }}"></td>
 								<td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>ID: P{{ str_pad($property->property_id, 3, '0', STR_PAD_LEFT) }}</small></td>
 								<td>{{ $property->property_type }}</td>
-								<td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }} <small>{{ $property->price_type }}</small></td>
+								<td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}<small>{{ $property->priceSuffix() }}</small></td>
 								<td>
 									@if ($isSoldListing || $blocksResubmission)
 										{{ $property->property_status ?? 'Available' }}
@@ -199,27 +199,6 @@
 			});
 			applyListingFilters();
 
-			document.querySelectorAll('[data-copy-referral]').forEach((button) => {
-				button.addEventListener('click', async () => {
-					const referralUrl = button.dataset.copyReferral;
-					try {
-						await navigator.clipboard.writeText(referralUrl);
-						button.innerHTML = '<i data-lucide="check" aria-hidden="true"></i>';
-						button.setAttribute('aria-label', 'Referral link copied');
-						button.title = 'Referral link copied';
-						window.lucide?.createIcons();
-						window.setTimeout(() => {
-							if (!button.isConnected) return;
-							button.innerHTML = '<i data-lucide="copy" aria-hidden="true"></i>';
-							button.setAttribute('aria-label', 'Copy referral link');
-							button.title = 'Copy referral link';
-							window.lucide?.createIcons();
-						}, 1600);
-					} catch {
-						window.prompt('Copy this referral link', referralUrl);
-					}
-				});
-			});
 		});
 	</script>
 @endpush

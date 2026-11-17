@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Property;
 use App\Models\ReferralCode;
+use App\Models\PropertyAssign;
 use App\Models\PropertyDetail;
 use App\Jobs\GeocodeProperty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,6 +38,7 @@ class PropertyManagementTest extends TestCase
             ->assertSee('Add a feature not listed')
             ->assertSee('Add a lifestyle tag')
             ->assertSee('Add a location preference')
+            ->assertDontSee('name="price_type"', false)
             ->assertDontSee('Reference Code');
     }
 
@@ -136,6 +138,54 @@ class PropertyManagementTest extends TestCase
         $this->assertDatabaseHas('property_listings', [
             'property_id' => $property->property_id,
             'property_status' => 'Rent to Own',
+            'price_type' => 'Per Month',
+        ]);
+
+        $property->refresh();
+        $this->assertSame('/month', $property->priceSuffix());
+
+        $this->patch(route('admin.properties.status', $property), ['property_status' => 'For Sale'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('property_listings', [
+            'property_id' => $property->property_id,
+            'property_status' => 'For Sale',
+            'price_type' => 'Full Price',
+        ]);
+        $this->assertSame('', $property->fresh()->priceSuffix());
+    }
+
+    public function test_assigned_professional_receives_the_referral_code_they_generate(): void
+    {
+        $owner = User::factory()->create(['role_name' => 'Agent']);
+        $assignedProfessional = User::factory()->create(['role_name' => 'Agent']);
+        $property = Property::create([
+            'user_id' => $owner->user_id,
+            'property_name' => 'Assigned Referral Home',
+            'property_type' => 'House & Lot',
+            'street' => '1 Referral Street',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 3000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Approved',
+            'listing_mode' => 'professional',
+        ]);
+        PropertyAssign::create([
+            'user_id' => $assignedProfessional->user_id,
+            'property_id' => $property->property_id,
+            'assigned_date' => now()->toDateString(),
+            'status' => 'Approved',
+        ]);
+
+        $this->actingAs($assignedProfessional)
+            ->post(route('agent.properties.generate-code', $property->property_id))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('referral_codes', [
+            'property_id' => $property->property_id,
+            'user_id' => $assignedProfessional->user_id,
         ]);
     }
 

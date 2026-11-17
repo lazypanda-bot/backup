@@ -230,6 +230,63 @@ document.addEventListener('DOMContentLoaded', () => {
         window.setTimeout(close, duration);
     };
 
+    const copyText = async (text) => {
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return;
+            } catch {
+                // Fall through for browsers that deny Clipboard API permissions.
+            }
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand('copy');
+        textarea.remove();
+        if (!copied) throw new Error('Copy command was rejected.');
+    };
+
+    document.addEventListener('click', async (event) => {
+        const button = event.target.closest?.('[data-copy-referral]');
+        if (!button || button.dataset.copying === 'true') return;
+
+        const value = button.dataset.copyReferral || '';
+        if (!value) {
+            window.showToast('Referral link is unavailable.', 'error');
+            return;
+        }
+
+        button.dataset.copying = 'true';
+        button.setAttribute('aria-busy', 'true');
+        try {
+            await copyText(value);
+            button.innerHTML = '<i data-lucide="check" aria-hidden="true"></i>';
+            button.setAttribute('aria-label', 'Referral link copied');
+            button.title = 'Referral link copied';
+            window.lucide?.createIcons();
+            window.showToast('Referral link copied successfully', 'success', 5000);
+            window.setTimeout(() => {
+                if (!button.isConnected) return;
+                button.innerHTML = '<i data-lucide="copy" aria-hidden="true"></i>';
+                button.setAttribute('aria-label', 'Copy referral link');
+                button.title = 'Copy referral link';
+                delete button.dataset.copying;
+                button.removeAttribute('aria-busy');
+                window.lucide?.createIcons();
+            }, 5000);
+        } catch {
+            delete button.dataset.copying;
+            button.removeAttribute('aria-busy');
+            window.showToast('Unable to copy the referral link. Please try again.', 'error');
+        }
+    });
+
     document.addEventListener('click', (event) => {
         const submitter = event.target.closest('button[type="submit"], input[type="submit"]');
         if (submitter?.form) submitter.form.__confirmSubmitter = submitter;

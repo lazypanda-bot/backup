@@ -53,7 +53,7 @@
                                     <span class="rush-img-count">1/{{ max(1, $listing->images->count()) }}</span>
                                 </div>
                                 <div class="rush-card-body">
-                                    <div class="rush-price">₱ {{ number_format($listing->price, 0, '.', ',') }}</div>
+                                    <div class="rush-price">₱ {{ number_format($listing->price, 0, '.', ',') }}<small>{{ $listing->priceSuffix() }}</small></div>
                                     <h3 class="rush-title">{{ $listing->property_name }}</h3>
                                     <p class="rush-location">{{ collect([$listing->city, $listing->province])->filter()->implode(', ') ?: 'Cebu, Philippines' }}</p>
                                     <hr class="rush-divider">
