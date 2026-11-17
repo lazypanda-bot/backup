@@ -59,7 +59,7 @@ class UserController extends Controller
             abort(403);
         }
         $allowedRoles = $creator->normalizedRole() === 'lead_broker'
-            ? ['Admin', 'Lead Broker', 'Broker', 'Agent']
+            ? ['Admin', 'Lead Broker']
             : ['Agent', 'Broker'];
 
         \App\Support\InputRules::normalize($request);
@@ -195,20 +195,15 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', $user->name . ' is now ' . strtolower($validated['account_status']) . '.');
     }
 
-    /*
-     * **FOR DELETE ACTIONS**
-     * Temporarily disabled. Restore the destroy route and this method together
-     * if user deletion is re-enabled.
-     *
     public function destroy(User $user)
     {
         $this->authorizeAdmin();
+        abort_if((int) $user->user_id === (int) Auth::id(), 403, 'You cannot delete your own account.');
 
         $user->delete();
 
         return response()->json(['success' => true, 'message' => 'User deleted successfully.']);
     }
-    */
 
     public function downloadCredentials(User $user)
     {

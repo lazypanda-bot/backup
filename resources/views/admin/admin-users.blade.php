@@ -101,11 +101,9 @@
                                     <label for="role" class="form-label">Role *</label>
                                     <select class="form-select" id="role" name="role_name" data-user-role required>
                                         <option value="">Select a role</option>
-                                        @if (auth()->user()?->normalizedRole() === 'lead_broker')
+                                        @if (auth()->user()?->normalizedRole() === 'lead_broker' && auth()->user()?->actingRole() === 'admin')
                                             <option value="Admin" {{ old('role_name') === 'Admin' ? 'selected' : '' }}>Admin</option>
                                             <option value="Lead Broker" {{ old('role_name') === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option>
-                                            <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
-                                            <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
                                         @else
                                             <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
                                             <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
@@ -161,8 +159,7 @@
                                     @foreach($allUsers as $user)
                                         @php($isTakenOutsideTeam = in_array($user->user_id, $takenUserIds ?? [], true) && ! in_array($user->user_id, $currentTeamUserIds, true))
                                         <label class="au-member-choice {{ $isTakenOutsideTeam ? 'is-disabled' : '' }}">
-                                            <input type="checkbox" class="member-checkbox" name="member_ids[]" value="{{ $user->user_id }}" data-userid="{{ $user->user_id }}" data-taken="{{ $isTakenOutsideTeam ? 'true' : 'false' }}"
-                                                @checked(in_array($user->user_id, $selectedMemberIds))
+                                            <input type="checkbox" class="member-checkbox" name="member_ids[]" value="{{ $user->user_id }}" {{ in_array($user->user_id, $selectedMemberIds) ? 'checked' : '' }} data-userid="{{ $user->user_id }}" data-taken="{{ $isTakenOutsideTeam ? 'true' : 'false' }}"
                                                 @disabled($isTakenOutsideTeam)>
                                             <span>{{ $user->name }}</span>
                                             <small>{{ $isTakenOutsideTeam ? $user->role_name . ' - Already in team' : $user->role_name }}</small>

@@ -22,7 +22,7 @@ class ProfessionalProfileTest extends TestCase
         $this->actingAs($leadBroker)->post(route('settings.profile.update'), [
             'name' => $leadBroker->name,
             'email' => $leadBroker->email,
-            'contact_number' => '555-0101',
+            'contact_number' => '0917-123-4567',
             'license_number' => 'PRC-CHANGED-BY-PROFESSIONAL',
             'professional_bio' => 'Experienced Cebu real estate professional.',
             'profile_photo' => UploadedFile::fake()->createWithContent(
@@ -33,7 +33,7 @@ class ProfessionalProfileTest extends TestCase
         ])->assertRedirect();
 
         $leadBroker->refresh()->load('professionalProfile');
-        $this->assertSame('5550101', $leadBroker->contact_number);
+        $this->assertSame('09171234567', $leadBroker->contact_number);
         $this->assertSame('PRC-1001', $leadBroker->professionalProfile->license_number);
         $this->assertSame('Experienced Cebu real estate professional.', $leadBroker->professionalProfile->professional_bio);
         $this->assertTrue(Storage::disk('public')->exists($leadBroker->profile_photo));

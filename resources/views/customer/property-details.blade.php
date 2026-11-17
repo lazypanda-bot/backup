@@ -72,7 +72,7 @@
                     ['icon' => 'fa-bath', 'label' => 'Bathrooms', 'value' => ($details?->bathroom ?? 0) . ' baths', 'show' => $show('bathrooms') && ($isResidential || $hasValue($details?->bathroom))],
                     ['icon' => 'fa-car', 'label' => 'Parking', 'value' => ($details?->parking_spaces ?? 0) . ' parking', 'show' => $show('parking_spaces') && $hasValue($details?->parking_spaces)],
                     ['icon' => 'fa-vector-square', 'label' => 'Floor area', 'value' => number_format($details?->floor_area ?? 0, 2) . ' m²', 'show' => $show('floor_area') && $hasValue($details?->floor_area)],
-                    ['icon' => 'fa-expand', 'label' => 'Lot area', 'value' => number_format($details?->lot_area ?? 0, 2) . ' m²', 'show' => $show('lot_area') && $hasValue($details?->lot_area)],
+                    ['icon' => 'fa-expand', 'label' => 'Lot area', 'value' => number_format($details?->lot_area ?? 0, 2) . ' m² lot', 'show' => $show('lot_area') && $hasValue($details?->lot_area)],
                 ])->where('show', true);
 
                 $detailTiles = $metrics

@@ -6,6 +6,7 @@
         $mobileStart = max(1, min($currentPage - 2, $lastPage - $mobileWindow + 1));
         $mobileEnd = min($lastPage, $mobileStart + $mobileWindow - 1);
     @endphp
+    <div class="au-pagination">
     <nav class="ljs-pagination" role="navigation" aria-label="Pagination">
         @if ($paginator->onFirstPage())
             <span class="is-disabled" aria-disabled="true" aria-label="Previous page">&lsaquo;</span>
@@ -42,4 +43,5 @@
             <span class="is-disabled" aria-disabled="true" aria-label="Next page">&rsaquo;</span>
         @endif
     </nav>
+    </div>
 @endif

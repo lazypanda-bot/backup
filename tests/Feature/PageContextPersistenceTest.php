@@ -60,6 +60,7 @@ class PageContextPersistenceTest extends TestCase
         $payload = [
             'property_name' => 'Stateful Property', 'property_type' => 'House & Lot', 'description' => 'Property state test.',
             'street' => 'One Street', 'city' => 'Cebu City', 'province' => 'Cebu', 'price' => 5000000,
+            'lot_area' => 120, 'floor_area' => 90, 'bedrooms' => 3, 'bathrooms' => 2,
             'property_status' => 'For Sale', '_return_to' => '/app/property?tab=project-listings',
         ];
         $this->post(route('admin.properties.store'), $payload)->assertSessionHasNoErrors()

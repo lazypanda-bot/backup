@@ -341,7 +341,7 @@ class MessagingSearchAttachmentTest extends TestCase
     {
         $conversation = Conversation::create(['type' => 'direct', 'created_by' => $first->user_id]);
         $conversation->participants()->createMany([
-            ['user_id' => $first->user_id, 'last_read_at' => $readBy === $first->user_id ? now() : null],
+            ['user_id' => $first->user_id],
             ['user_id' => $second->user_id],
         ]);
         ConversationMessage::create([
@@ -350,6 +350,9 @@ class MessagingSearchAttachmentTest extends TestCase
             'subject' => $subject,
             'body' => $body,
         ]);
+        if ($readBy !== null) {
+            $conversation->participants()->where('user_id', $readBy)->update(['last_read_at' => now()->addSecond()]);
+        }
 
         return $conversation;
     }

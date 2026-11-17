@@ -191,7 +191,7 @@ class ReportController extends Controller
         });
 
         $type = $filters['type'] ?? 'summary';
-        $fileName = $type === 'performance' ? 'ljs-professional-performance.csv' : 'ljs-summary-report.csv';
+        $fileName = $type === 'performance' ? 'ljs-professional-performance.csv' : 'ljs-property-report.csv';
 
         return response()->streamDownload(function () use ($type, $properties, $performanceRows, $from, $to, $inquiries, $appointments, $completed, $cancelled, $sold, $rates) {
             $handle = fopen('php://output', 'w');
@@ -266,7 +266,7 @@ class ReportController extends Controller
     {
         return $user->actingRole() === 'admin'
             ? Property::query()->reportable()
-            : Property::query()->reportable()->visibleTo($user);
+            : Property::query()->reportable()->where('user_id', $user->user_id);
     }
 
     private function visibleProfessionalIds(User $user, $visiblePropertyIds)
@@ -279,12 +279,7 @@ class ReportController extends Controller
             ->merge(Property::query()->whereIn('property_id', $visiblePropertyIds)->whereNotNull('user_id')->pluck('user_id'))
             ->merge(PropertyAssign::query()->whereIn('property_id', $visiblePropertyIds)->where('status', 'Approved')->pluck('user_id'));
 
-        if ($user->actingRole() === 'broker') {
-            $teamIds = $user->teams()->pluck('team_id');
-            $ids = $ids->merge(TeamMember::query()->whereIn('team_id', $teamIds)->where('status', 'Approved')->pluck('user_id'));
-        }
-
-        return $ids->filter()->unique()->values();
+        return collect([(int) $user->user_id])->filter()->unique()->values();
     }
 
     private function performanceRows($staff, $visiblePropertyIds, CarbonImmutable $from, CarbonImmutable $to)

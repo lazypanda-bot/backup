@@ -239,13 +239,22 @@ class PropertyController extends Controller
 
         $validated = $request->validate([
             'approval_status' => ['required', 'in:Approved,Rejected'],
-            'rejection_reasons' => ['required_if:approval_status,Rejected', 'array', 'min:1'],
+            'rejection_reasons' => ['nullable', 'array', 'min:1'],
             'rejection_reasons.*' => ['string', 'in:Incomplete property details,Same property already listed,Missing or invalid images,Incorrect price or property information,Location/address needs correction,Listing does not meet requirements,Other'],
             'rejection_note_other' => ['nullable', 'string', 'max:1000'],
+            'rejection_note' => ['nullable', 'string', 'max:1000'],
         ]);
         $isRejected = $validated['approval_status'] === 'Rejected';
         $rejectionNote = null;
         if ($isRejected) {
+            if (blank($validated['rejection_note'] ?? null) && empty($validated['rejection_reasons'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'rejection_note' => 'Please select a rejection reason or add a note.',
+                ]);
+            }
+            if (filled($validated['rejection_note'] ?? null)) {
+                $rejectionNote = trim($validated['rejection_note']);
+            } else {
             $reasons = collect($validated['rejection_reasons'] ?? [])->unique()->values();
             if ($reasons->contains('Other') && blank($validated['rejection_note_other'] ?? null)) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
@@ -258,6 +267,7 @@ class PropertyController extends Controller
                     ? 'Other: ' . trim($validated['rejection_note_other'] ?? '')
                     : $reason)
                 ->implode('; ');
+            }
         }
 
         $property->update([
@@ -331,7 +341,9 @@ class PropertyController extends Controller
     public function toggleFeatured(Property $property)
     {
         $user = Auth::user();
-        abort_unless($user instanceof User, 403);
+        if (! $user instanceof User) {
+            abort(403);
+        }
 
         $isAdmin = $user->actingRole() === 'admin';
         $isProfessionalOwner = (int) $property->user_id === (int) $user->user_id
@@ -558,7 +570,7 @@ class PropertyController extends Controller
     $viewer = Auth::user();
     $hasActiveAppointment = $viewer instanceof User
         && \App\Models\Appointment::clientHasActiveForProperty($viewer, $property->property_id);
-    if ($property->approval_status !== 'Approved' || in_array($property->property_status, ['Sold', 'Unavailable'], true)) {
+    if ($property->approval_status !== 'Approved') {
         abort_unless(
             $viewer instanceof User
                 && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),

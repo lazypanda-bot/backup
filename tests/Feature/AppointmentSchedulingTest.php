@@ -35,7 +35,7 @@ class AppointmentSchedulingTest extends TestCase
         $payload = [
             'assign_id' => $assignment->assign_id,
             'contact_name' => $client->name,
-            'contact_number' => '555-0101',
+            'contact_number' => '09171234567',
             'contact_email' => $client->email,
             'appointment_type' => 'Property viewing',
             'preferred_date' => $clientStart->toDateString(),

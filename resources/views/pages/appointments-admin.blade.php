@@ -98,6 +98,7 @@
                                                     <option value="Completed">Completed</option>
                                                     <option value="Cancelled">Cancel</option>
                                                 @else
+                                                    <option value="Confirmed" selected>Confirmed</option>
                                                     <option value="Completed">Completed</option>
                                                     <option value="Cancelled">Cancel</option>
                                                 @endif

@@ -136,6 +136,12 @@ Route::get('/properties', function (Request $request) {
         }
     }
     $requestedPriceRange = (string) $request->input('price_range', '');
+    if ($requestedPriceRange !== '' && ! $priceRanges->contains('value', $requestedPriceRange)) {
+        $priceRanges->push([
+            'value' => $requestedPriceRange,
+            'label' => $requestedPriceRange,
+        ]);
+    }
     $priceRangeBounds = null;
     if (preg_match('/^(\d+)-(\d+)$/', $requestedPriceRange, $matches)) {
         $priceRangeBounds = [(int) $matches[1], (int) $matches[2]];
@@ -533,9 +539,7 @@ Route::post('/lead/toggle', function () {
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users/{user}/credentials', [UserController::class, 'downloadCredentials'])->name('users.credentials');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-    // **FOR DELETE ACTIONS** Temporarily disabled; restore this route when user deletion is re-enabled.
-    // Route::resource('users', UserController::class);
-    Route::resource('users', UserController::class)->except(['destroy']);
+    Route::resource('users', UserController::class);
     // **FOR DELETE ACTIONS** Temporarily disabled; restore this route when team deletion is re-enabled.
     Route::resource('teams', TeamController::class)->except(['destroy']);
 });

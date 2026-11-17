@@ -340,12 +340,12 @@ class AppointmentController extends Controller
 		}
 		$validated = $request->validate([
 			'appointment_status' => ['required', 'in:' . implode(',', $allowedStatuses)],
-			'cancellation_reason' => ['required_if:appointment_status,Cancelled', 'nullable', 'string', 'max:1000'],
+			'cancellation_reason' => ['nullable', 'string', 'max:1000'],
 		]);
 		$appointment->update([
 			'appointment_status' => $validated['appointment_status'],
 			'completed_at' => $validated['appointment_status'] === 'Completed' ? ($appointment->completed_at ?? now()) : null,
-			'cancellation_reason' => $validated['appointment_status'] === 'Cancelled' ? $validated['cancellation_reason'] : null,
+			'cancellation_reason' => $validated['appointment_status'] === 'Cancelled' ? ($validated['cancellation_reason'] ?? null) : null,
 		]);
 		$this->notifyAppointmentStatus($appointment, $validated['appointment_status'], $user);
 

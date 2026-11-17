@@ -38,7 +38,7 @@ class ContactAndQueueWorkflowTest extends TestCase
         $this->from(route('contact'))->post(route('contact.submit'), [
             'name' => 'Taylor Client',
             'email' => 'taylor@example.test',
-            'phone' => '555-0101',
+            'phone' => '0917-123-4567',
             'message' => 'I would like to ask about a property.',
         ])->assertRedirect(route('contact'))
             ->assertSessionHas('success');
