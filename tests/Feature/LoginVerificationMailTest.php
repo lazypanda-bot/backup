@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Mail\LoginVerificationMail;
+use App\Mail\PasswordResetMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,26 @@ use Tests\TestCase;
 
 class LoginVerificationMailTest extends TestCase
 {
+    public function test_password_reset_email_matches_the_branded_verification_style(): void
+    {
+        $mail = new PasswordResetMail('654321');
+        $html = $mail->render();
+        $document = new \DOMDocument;
+        $document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new \DOMXPath($document);
+        $code = $xpath->query('//p[@class="verification-code"]')->item(0);
+
+        $this->assertNotNull($code);
+        $this->assertSame('654321', trim($code->textContent));
+        $this->assertSame(1, $xpath->query('//img[starts-with(@src, "data:image/jpeg;base64,")]')->length);
+        $this->assertSame(0, $xpath->query('//a | //script | //form')->length);
+        $this->assertStringContainsString('Reset your password.', $html);
+        $this->assertStringContainsString('10 minutes', $html);
+        $mail->assertSeeInText('654321');
+        $mail->assertSeeInText('Never share this reset code');
+        $this->assertSame('LJS Realty password reset code', $mail->envelope()->subject);
+    }
+
     use RefreshDatabase;
 
     public function test_verification_email_has_a_large_code_embedded_logo_and_no_links(): void

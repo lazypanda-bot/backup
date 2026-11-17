@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Property;
 use App\Models\PropertyAssign;
 use App\Models\User;
+use App\Mail\PasswordResetMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -18,13 +19,14 @@ class ClientAccountFlowsTest extends TestCase
     public function test_password_can_be_reset_with_the_emailed_code(): void
     {
         $code = null;
-        Mail::shouldReceive('raw')->once()->andReturnUsing(function ($body) use (&$code) {
-            preg_match('/(\d{6})/', $body, $matches);
-            $code = $matches[1];
-        });
+        Mail::fake();
         $user = User::factory()->create(['role_name' => 'Agent', 'password' => Hash::make('OldPassword1!')]);
 
         $this->postJson(route('password.forgot'), ['email' => $user->email])->assertOk();
+        Mail::assertSent(PasswordResetMail::class, function (PasswordResetMail $mail) use ($user, &$code) {
+            $code = $mail->code;
+            return $mail->hasTo($user->email);
+        });
         $this->postJson(route('password.reset'), ['code' => '000000', 'password' => 'NewPassword1!', 'password_confirmation' => 'NewPassword1!'])
             ->assertStatus(422);
         $this->postJson(route('password.reset'), ['code' => $code, 'password' => 'NewPassword1!', 'password_confirmation' => 'NewPassword1!'])

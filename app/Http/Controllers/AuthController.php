@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\LoginVerificationMail;
+use App\Mail\PasswordResetMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -142,9 +143,7 @@ class AuthController extends Controller
 
         if ($user) {
             try {
-                Mail::raw("Your LJS Realty password reset code is {$code}. It expires in 10 minutes. If you did not request this, you can ignore this email.", function ($message) use ($user) {
-                    $message->to($user->email, $user->name)->subject('LJS Realty password reset code');
-                });
+                Mail::to($user->email, $user->name)->send(new PasswordResetMail($code));
             } catch (\Throwable $exception) {
                 Log::error('Password reset code could not be sent.', ['user_id' => $user->user_id, 'error' => $exception->getMessage()]);
                 throw ValidationException::withMessages(['email' => 'We could not send your reset code. Please try again.']);
