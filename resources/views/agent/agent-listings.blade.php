@@ -29,7 +29,7 @@
                             <span class="badge type-house">{{ $property->property_type }}</span>
                         </div>
                         <h3 class="property-title">{{ $property->property_name }}</h3>
-                        <p class="property-price">₱ {{ number_format($property->price, 0, '.', ',') }}</p>
+                        <p class="property-price">₱ {{ number_format($property->price, 0, '.', ',') }} <small>{{ $property->price_type }}</small></p>
 
                         <div class="card-footer-actions">
                             <div class="action-buttons">

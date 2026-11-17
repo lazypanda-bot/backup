@@ -53,6 +53,7 @@
                         @error('property_type')<small>{{ $message }}</small>@enderror
                     </div>
                     <label class="property-edit-field"><span>Price (PHP)</span><input type="number" min="0" step="0.01" name="price" value="{{ old('price', $property->price) }}" required>@error('price')<small>{{ $message }}</small>@enderror</label>
+                    <label class="property-edit-field"><span>Price Type</span><select name="price_type" required><option value="">Select price type</option><option value="Per Month" @selected(old('price_type', $property->price_type) === 'Per Month')>Per Month</option><option value="Full Price" @selected(old('price_type', $property->price_type) === 'Full Price')>Full Price</option></select>@error('price_type')<small>{{ $message }}</small>@enderror</label>
                     <label class="property-edit-field"><span>Status</span>
                         @if ($isSoldListing)
                             <input type="hidden" name="property_status" value="Sold">

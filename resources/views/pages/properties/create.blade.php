@@ -68,6 +68,7 @@
                         @error('property_type')<small class="property-create-error">{{ $message }}</small>@enderror
                     </div>
                     <label class="property-create-field"><span>Price (PHP) *</span><input type="number" min="0" step="0.01" name="price" value="{{ old('price') }}" placeholder="e.g. 2500000" required></label>
+                    <label class="property-create-field"><span>Price Type *</span><select name="price_type" required><option value="">Select price type</option><option value="Per Month" @selected(old('price_type') === 'Per Month')>Per Month</option><option value="Full Price" @selected(old('price_type') === 'Full Price')>Full Price</option></select>@error('price_type')<small>{{ $message }}</small>@enderror</label>
                     <label class="property-create-field"><span>Listing status *</span><select name="property_status" required>@foreach (['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'] as $status)<option value="{{ $status }}" @selected(old('property_status', 'For Sale') === $status)>{{ $status }}</option>@endforeach</select></label>
                     <label class="property-create-field property-create-field-wide property-create-description-field"><span>Description *</span><textarea name="description" rows="8" maxlength="5000" required>{{ old('description') }}</textarea></label>
                 </div>

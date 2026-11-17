@@ -49,7 +49,7 @@
         <div class="property-information-column">
             <header class="property-details-heading">
                 <div class="property-details-title-row">
-                    <p class="property-details-price">PHP {{ number_format($property->price, 2) }}</p>
+                    <p class="property-details-price">PHP {{ number_format($property->price, 2) }} <small>{{ $property->price_type }}</small></p>
                     <span class="property-details-status property-details-status-{{ \Illuminate\Support\Str::slug($property->property_status ?: 'available') }}">{{ $property->property_status ?: 'Available' }}</span>
                 </div>
                 <h1>{{ $property->property_name }}</h1>

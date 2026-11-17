@@ -85,7 +85,7 @@
 								<td class="staff-property-image-cell"><img src="{{ $imageUrl }}" alt="{{ $property->property_name }}"></td>
 								<td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>ID: P{{ str_pad($property->property_id, 3, '0', STR_PAD_LEFT) }}</small></td>
 								<td>{{ $property->property_type }}</td>
-								<td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}</td>
+								<td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }} <small>{{ $property->price_type }}</small></td>
 								<td>
 									@if ($isSoldListing || $blocksResubmission)
 										{{ $property->property_status ?? 'Available' }}

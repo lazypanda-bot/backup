@@ -11,7 +11,7 @@
         <a class="staff-property-back" href="{{ route('app.page', ['page' => auth()->user()->actingRole() === 'admin' ? 'property' : 'listings']) }}">&larr; Back to listings</a>
         <div class="staff-property-header">
             <div><p>{{ $property->property_status }}</p><h1>{{ $property->property_name }}</h1><span>{{ $property->city }}, {{ $property->province }}</span></div>
-            <strong>PHP {{ number_format($property->price, 0) }}</strong>
+            <strong>PHP {{ number_format($property->price, 0) }} <small>{{ $property->price_type }}</small></strong>
         </div>
         @if ($property->approval_status === 'Rejected' && (int) $property->user_id === (int) auth()->id())
             <div class="listing-rejection-note"><strong>Admin requested these changes</strong><p>{{ $property->rejection_note }}</p>@if ($property->blocksResubmission())<span class="listing-resubmit-locked">This duplicate listing cannot be resubmitted.</span>@else<a href="{{ route('admin.properties.edit', $property) }}">Edit and resubmit</a>@endif</div>
