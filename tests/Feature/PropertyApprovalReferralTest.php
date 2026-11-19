@@ -65,6 +65,7 @@ class PropertyApprovalReferralTest extends TestCase
         $this->assertDatabaseHas('property_listings', [
             'property_id' => $property->property_id,
             'approval_status' => 'Approved',
+            'approved_by' => $admin->user_id,
         ]);
         $this->assertDatabaseHas('referral_codes', [
             'property_id' => $property->property_id,
@@ -72,6 +73,11 @@ class PropertyApprovalReferralTest extends TestCase
         ]);
 
         $code = ReferralCode::query()->where('property_id', $property->property_id)->firstOrFail();
+        $this->actingAs($admin)
+            ->get(route('app.page', ['page' => 'property']))
+            ->assertOk()
+            ->assertSee('Approved by')
+            ->assertSee($admin->name);
         $this->actingAs($professional)
             ->get(route('app.page', ['page' => 'listings']))
             ->assertOk()
@@ -80,6 +86,34 @@ class PropertyApprovalReferralTest extends TestCase
             ->assertSee($code->code);
         $this->get(route('referrals.open', $code->code))
             ->assertRedirect(route('properties.show', ['id' => $property->property_id, 'ref' => $code->code]));
+    }
+
+    public function test_approving_one_duplicate_submission_syncs_matching_pending_rows(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $duplicates = collect(range(1, 3))->map(fn () => Property::create([
+            'user_id' => $professional->user_id,
+            'property_name' => 'Duplicate Review Home',
+            'property_type' => 'House & Lot',
+            'street' => '1 Review Road',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 5000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Pending',
+            'listing_mode' => 'professional',
+        ]));
+
+        $this->actingAs($admin)
+            ->post(route('admin.properties.review', $duplicates->first()), ['approval_status' => 'Approved'])
+            ->assertRedirect();
+
+        $this->assertSame(3, Property::query()
+            ->whereIn('property_id', $duplicates->pluck('property_id'))
+            ->where('approval_status', 'Approved')
+            ->where('approved_by', $admin->user_id)
+            ->count());
     }
 
     public function test_rejection_requires_and_persists_a_reason(): void

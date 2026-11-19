@@ -518,7 +518,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         ? User::where('account_status', 'Active')->whereIn('role_name', ['Broker', 'Agent', 'Lead Broker'])->orderBy('name')->get()
         : collect();
 
-    $properties = Property::visibleTo($user)->with(['images', 'details', 'user', 'assignments.user', 'referralCodes'])->latest()->get();
+    $properties = Property::visibleTo($user)->with(['images', 'details', 'user', 'approver', 'assignments.user', 'referralCodes'])->latest()->get();
     $pendingListings = $page === 'property'
         ? $properties->where('approval_status', 'Pending')->sortBy('created_at')->values()
         : collect();

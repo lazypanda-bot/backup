@@ -270,15 +270,41 @@ class PropertyController extends Controller
             }
         }
 
-        $property->update([
-            'approval_status' => $validated['approval_status'],
-            'rejection_note' => $rejectionNote,
-        ]);
+        $approvedListings = DB::transaction(function () use ($property, $isRejected, $validated, $rejectionNote, $user) {
+            $listings = collect([$property]);
+            if (! $isRejected) {
+                $listings = Property::query()
+                    ->where('listing_mode', 'professional')
+                    ->where('user_id', $property->user_id)
+                    ->where('approval_status', 'Pending')
+                    ->whereRaw('LOWER(TRIM(property_name)) = ?', [strtolower(trim($property->property_name))])
+                    ->whereRaw('LOWER(TRIM(street)) = ?', [strtolower(trim($property->street))])
+                    ->whereRaw('LOWER(TRIM(city)) = ?', [strtolower(trim($property->city))])
+                    ->whereRaw('LOWER(TRIM(province)) = ?', [strtolower(trim($property->province))])
+                    ->lockForUpdate()
+                    ->get();
+                if ($listings->isEmpty()) {
+                    $listings = collect([$property->fresh()]);
+                }
+            }
+
+            $listings->each(function (Property $listing) use ($validated, $rejectionNote, $user): void {
+                $listing->update([
+                    'approval_status' => $validated['approval_status'],
+                    'rejection_note' => $rejectionNote,
+                    'approved_by' => $validated['approval_status'] === 'Approved' ? $user->user_id : null,
+                    'approved_at' => $validated['approval_status'] === 'Approved' ? now() : null,
+                ]);
+            });
+
+            return $listings;
+        });
 
         $referralCode = null;
         if (! $isRejected && $property->listing_mode !== 'admin') {
             $lister = $property->user;
             if ($lister instanceof User && in_array($lister->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)) {
+                $approvedListings->each(fn (Property $listing) => $this->referralCodeFor($listing, $lister));
                 $referralCode = $this->referralCodeFor($property, $lister);
             }
         }

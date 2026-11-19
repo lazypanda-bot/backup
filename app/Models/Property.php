@@ -27,6 +27,10 @@ class Property extends Model
         'deleted_at',
     ];
 
+    protected $casts = [
+        'approved_at' => 'datetime',
+    ];
+
     protected static function booted(): void
     {
         static::saving(function (Property $property): void {
@@ -48,6 +52,11 @@ class Property extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by', 'user_id');
     }
 
     /**

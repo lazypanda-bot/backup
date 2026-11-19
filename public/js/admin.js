@@ -8,6 +8,7 @@ const initializeAdminPropertyPage = function () {
     const propertyStatusFilter = document.getElementById('propertyStatusFilter');
     const propertyCards = document.querySelectorAll('[data-property-card]');
     const propertyEmptyRow = document.querySelector('[data-property-empty]');
+    const propertySourceEmptyRow = document.querySelector('[data-property-source-empty]');
 
     function filterProperties() {
         const search = (propertySearch?.value || '').trim().toLowerCase();
@@ -21,7 +22,9 @@ const initializeAdminPropertyPage = function () {
             card.hidden = !visible;
             if (visible) visibleCount += 1;
         });
-        if (propertyEmptyRow) propertyEmptyRow.hidden = visibleCount > 0;
+        const hasFilters = Boolean(search || status);
+        if (propertyEmptyRow) propertyEmptyRow.hidden = visibleCount > 0 || propertyCards.length === 0 && !hasFilters;
+        if (propertySourceEmptyRow) propertySourceEmptyRow.hidden = visibleCount > 0 || hasFilters;
     }
 
     propertySearch?.addEventListener('input', filterProperties);
