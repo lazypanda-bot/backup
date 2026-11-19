@@ -107,7 +107,7 @@
 								@endif
 								<div class="form-group">
 									<label for="license_number">{{ $credentialLabel }} <small>(provided by Admin)</small></label>
-									<input type="text" id="license_number" value="{{ $profile?->license_number ?: 'Not yet provided' }}" readonly aria-readonly="true">
+									<input class="settings-locked-field" type="text" id="license_number" value="{{ $profile?->license_number ?: 'Not yet provided' }}" disabled tabindex="-1">
 									<small>This verified credential is managed by an Admin and cannot be edited here.</small>
 								</div>
 								<div class="form-group">

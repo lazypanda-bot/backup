@@ -61,7 +61,7 @@ class SettingsWorkflowTest extends TestCase
         $this->actingAs($agent)->get(route('app.page', ['page' => 'settings']))
             ->assertOk()
             ->assertSee('ACC-88991')
-            ->assertSee('readonly', false)
+            ->assertSee('disabled tabindex="-1"', false)
             ->assertDontSee('name="license_number"', false);
 
         $this->actingAs($agent)->get(route('settings.credentials.download'))
