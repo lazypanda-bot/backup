@@ -29,7 +29,7 @@ class PreservePageContext
             $group = match (true) {
                 $request->routeIs('admin.users.*', 'admin.teams.*') => 'users',
                 $request->routeIs('admin.properties.*') => 'properties',
-                $request->routeIs('appointments.status', 'appointments.proposals.*', 'appointments.block-date') => 'appointments',
+                $request->routeIs('appointments.status', 'appointments.proposals.*') => 'appointments',
                 default => null,
             };
             $returnTo = $request->input('_return_to');

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupFor = (path) => {
         if (/^\/admin\/(users|teams)(\/|$)/.test(path) || path === '/app/users') return 'users';
         if (/^\/admin\/properties(\/|$)/.test(path) || paths.properties.includes(path)) return 'properties';
+        if (path === '/appointments/block-date') return null;
         if (/^\/(appointments|appointment-proposals)(\/|$)/.test(path) || paths.appointments.includes(path)) return 'appointments';
         return null;
     };

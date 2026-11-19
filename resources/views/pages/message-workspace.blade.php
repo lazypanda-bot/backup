@@ -4,8 +4,13 @@
         <form class="thread-filters" method="GET" action="{{ route('messages.inbox') }}" role="search">
             @if ($panelMode ?? false)<input type="hidden" name="panel" value="1">@endif
             <label class="visually-hidden" for="threadSearch">Search messages</label>
-            <input id="threadSearch" type="search" name="q" value="{{ request('q') }}" maxlength="100" placeholder="Search people, properties, or messages">
-            <button type="submit" class="thread-search-submit" aria-label="Search messages"><i data-lucide="search" aria-hidden="true"></i></button>
+            <div class="thread-search-control">
+                <i class="thread-search-icon" data-lucide="search" aria-hidden="true"></i>
+                <input id="threadSearch" type="search" name="q" value="{{ request('q') }}" maxlength="100" placeholder="Search conversations">
+                <button type="submit" class="thread-search-submit" aria-label="Search messages">
+                    <span>Search</span>
+                </button>
+            </div>
         </form>
         <div class="threads-container">
             @forelse ($conversations as $item)

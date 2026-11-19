@@ -68,6 +68,7 @@ class AccountInactivityTest extends TestCase
             ->post(route('appointments.block-date'), [
                 'date' => $date,
                 'time_slot' => 'whole_day',
+                '_return_to' => route('appointments.index', absolute: false),
             ])
             ->assertRedirect(route('app.page', [
                 'page' => 'dashboard',
