@@ -322,8 +322,6 @@ class PropertyController extends Controller
                     'rejection_note' => $status === 'Rejected' && ! $isSelected
                         ? Property::DUPLICATE_REJECTION_REASON
                         : $rejectionNote,
-                    'approved_by' => $status === 'Approved' ? $user->user_id : null,
-                    'approved_at' => $status === 'Approved' ? now() : null,
                 ]);
             });
         });

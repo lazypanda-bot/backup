@@ -127,7 +127,7 @@
             </div>
             <div class="staff-property-table-wrap">
                 <table class="staff-property-table staff-property-requests-table">
-                    <thead><tr><th>Image</th><th>Property submission</th><th>Price</th><th>Type</th><th>Submitted by</th><th>Approved by</th><th>Status / Review</th></tr></thead>
+                    <thead><tr><th>Image</th><th>Property submission</th><th>Price</th><th>Type</th><th>Submitted by</th><th>Status / Review</th></tr></thead>
                     <tbody>
                 @forelse ($requestListings as $property)
                     @php
@@ -144,17 +144,6 @@
                         <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}<small>{{ $property->priceSuffix() }}</small></td>
                         <td>{{ $property->property_type }}</td>
                         <td>{{ $property->user?->name ?? 'Unknown user' }}<small class="staff-property-role">{{ $property->user?->role_name }}</small></td>
-                        <td>
-                            @if ($property->approved_by)
-                                {{ $property->approver?->name ?? 'Administrator' }}
-                                @if ($property->approved_at)<small class="staff-property-role">{{ $property->approved_at->format('M j, Y') }}</small>@endif
-                            @elseif ($property->approval_status === 'Approved')
-                                <span class="staff-unassigned">Not recorded</span>
-                                <small class="staff-property-role">Approved before audit tracking</small>
-                            @else
-                                <span class="staff-unassigned">—</span>
-                            @endif
-                        </td>
                         <td>
                             @if ($property->approval_status === 'Pending')
                             <div class="staff-review-actions">
@@ -174,7 +163,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="staff-table-empty">No property submissions yet.</td></tr>
+                    <tr><td colspan="6" class="staff-table-empty">No property submissions yet.</td></tr>
                 @endforelse
                     </tbody>
                 </table>

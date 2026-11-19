@@ -43,7 +43,7 @@ class PropertyApprovalReferralTest extends TestCase
             ->assertSee('Reject');
     }
 
-    public function test_legacy_approved_listing_explains_when_approver_was_not_recorded(): void
+    public function test_legacy_approved_listing_does_not_render_an_approver_column(): void
     {
         $admin = User::factory()->create(['role_name' => 'Admin']);
         $professional = User::factory()->create(['role_name' => 'Agent']);
@@ -63,7 +63,8 @@ class PropertyApprovalReferralTest extends TestCase
         $this->actingAs($admin)
             ->get(route('app.page', ['page' => 'property']))
             ->assertOk()
-            ->assertSee('Approved before audit tracking');
+            ->assertDontSee('Approved by')
+            ->assertDontSee('Approved before audit tracking');
     }
 
     public function test_professional_listing_stays_pending_until_admin_approves_and_then_gets_a_referral_code(): void
@@ -88,7 +89,6 @@ class PropertyApprovalReferralTest extends TestCase
         $this->assertDatabaseHas('property_listings', [
             'property_id' => $property->property_id,
             'approval_status' => 'Approved',
-            'approved_by' => $admin->user_id,
         ]);
         $this->assertDatabaseHas('referral_codes', [
             'property_id' => $property->property_id,
@@ -99,8 +99,7 @@ class PropertyApprovalReferralTest extends TestCase
         $this->actingAs($admin)
             ->get(route('app.page', ['page' => 'property']))
             ->assertOk()
-            ->assertSee('Approved by')
-            ->assertSee($admin->name);
+            ->assertDontSee('Approved by');
         $this->actingAs($professional)
             ->get(route('app.page', ['page' => 'listings']))
             ->assertOk()
