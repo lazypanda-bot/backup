@@ -101,7 +101,7 @@ const initializeDashboardCalendar = function () {
                 cell.classList.add('calendar-cell-blocked');
 
                 const reason = blocked.reason || '';
-                const startTime = blocked.start_time ? formatTime(blocked.start_time) : 'All day';
+                const startTime = blocked.start_time ? formatTime(blocked.start_time) : 'Whole day';
                 const endTime = blocked.end_time ? ` - ${formatTime(blocked.end_time)}` : '';
                 badge.textContent = reason || `${startTime}${endTime}`;
                 const blockedLine = document.createElement('div');
@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateInput = form?.querySelector('[name="date"]');
     const slotSelect = form?.querySelector('[name="time_slot"]');
     const status = form?.querySelector('.block-date-availability');
+    const submitButton = form?.querySelector('button[type="submit"]');
     if (!form || !dateInput || !slotSelect) return;
 
     let blockedDates = [];
@@ -150,18 +151,23 @@ document.addEventListener('DOMContentLoaded', () => {
         dateInput.classList.toggle('is-blocked', wholeDay);
         dateInput.setCustomValidity(wholeDay ? 'This date is already blocked for the whole day.' : '');
         if (wholeDay) {
-            dateInput.value = '';
-            slotSelect.value = '';
+            dateInput.setAttribute('aria-invalid', 'true');
             slotSelect.disabled = true;
+            if (submitButton) submitButton.disabled = true;
             if (status) status.textContent = 'Whole day already blocked. Choose another date.';
             return;
         }
 
+        dateInput.removeAttribute('aria-invalid');
         slotSelect.disabled = false;
+        if (submitButton) submitButton.disabled = false;
         if (slotSelect.selectedOptions[0]?.disabled) slotSelect.value = '';
         if (morning && afternoon) {
             dateInput.setCustomValidity('Morning and afternoon are already blocked. Choose another date.');
             dateInput.classList.add('is-blocked');
+            dateInput.setAttribute('aria-invalid', 'true');
+            slotSelect.disabled = true;
+            if (submitButton) submitButton.disabled = true;
             if (status) status.textContent = 'Whole day already blocked. Choose another date.';
         } else if (status) {
             status.textContent = morning

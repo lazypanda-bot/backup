@@ -336,7 +336,14 @@
     border-color: #94a3b8;
     background: #e5e7eb;
     color: #64748b;
+    cursor: pointer;
+}
+.block-date-dialog button[type="submit"]:disabled,
+.block-date-dialog select:disabled {
+    background: #e5e7eb;
+    color: #64748b;
     cursor: not-allowed;
+    opacity: 1;
 }
 .dash-sidebar {
     display: flex;
