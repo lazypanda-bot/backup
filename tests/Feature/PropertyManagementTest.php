@@ -38,8 +38,16 @@ class PropertyManagementTest extends TestCase
             ->assertSee('Add a feature not listed')
             ->assertSee('Add a lifestyle tag')
             ->assertSee('Add a location preference')
+            ->assertSee('data-no-confirm', false)
+            ->assertSee('Save Property')
             ->assertDontSee('name="price_type"', false)
             ->assertDontSee('Reference Code');
+
+        $leadBroker = User::factory()->create(['role_name' => 'Lead Broker']);
+        $this->actingAs($leadBroker)
+            ->withSession(['acting_as' => 'broker'])
+            ->get(route('admin.subfiles.addproperty'))
+            ->assertOk();
     }
 
     public function test_public_filter_options_only_include_values_from_approved_properties(): void
@@ -112,6 +120,7 @@ class PropertyManagementTest extends TestCase
             ->assertOk()
             ->assertSee('value="5m-10m" selected', false)
             ->assertSee('value="price_high" selected', false)
+            ->assertDontSee('setTimeout(submitFilters', false)
             ->assertSee('id="propertyFilterStatus"', false);
     }
 

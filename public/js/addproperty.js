@@ -1,7 +1,8 @@
 //ADDS PROPERTY WHEN SAVE PROPERTY BUTTON IS CLICKED IN PROPERTY CREATE
-document.addEventListener('DOMContentLoaded', () => {
+const initializeAddPropertyPage = () => {
     const form = document.querySelector('[data-type-requirements]');
-    if (!form) return;
+    if (!form || form.dataset.addPropertyInitialized) return;
+    form.dataset.addPropertyInitialized = 'true';
 
     const requirements = JSON.parse(form.dataset.typeRequirements || '{}');
     const visibility = JSON.parse(form.dataset.typeVisibility || '{}');
@@ -85,14 +86,68 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const addPropertyForm = document.getElementById('addPropertyForm') || form;
-    addPropertyForm.addEventListener('submit', function (event) {
-        const fileInput = document.getElementById('propertyImages');
-        if (fileInput && fileInput.files.length === 0) {
-            // Uncomment if you want to enforce at least one image
-            // event.preventDefault();
-            // alert('Please select at least one image for the property.');
+    addPropertyForm.addEventListener('submit', async function (event) {
+        if (event.defaultPrevented || addPropertyForm.dataset.confirmPending === 'true') return;
+        event.preventDefault();
+        const submitter = event.submitter || addPropertyForm.querySelector('button[type="submit"]');
+        const previousLabel = submitter?.innerHTML;
+        if (submitter) {
+            submitter.disabled = true;
+            submitter.textContent = 'Saving property...';
+        }
+
+        try {
+            const response = await fetch(addPropertyForm.action, {
+                method: addPropertyForm.method || 'POST',
+                headers: {
+                    Accept: 'application/json, text/html',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: new FormData(addPropertyForm),
+            });
+
+            if (response.status === 422) {
+                const data = await response.json();
+                const messages = Object.values(data.errors || {}).flat();
+                let summary = addPropertyForm.parentElement.querySelector('.property-create-errors');
+                if (!summary) {
+                    summary = document.createElement('div');
+                    summary.className = 'property-create-errors';
+                    summary.setAttribute('role', 'alert');
+                    addPropertyForm.before(summary);
+                }
+                summary.replaceChildren();
+                const heading = document.createElement('strong');
+                heading.textContent = 'Please review the form errors before continuing.';
+                const list = document.createElement('ul');
+                messages.forEach((message) => {
+                    const item = document.createElement('li');
+                    item.textContent = message;
+                    list.appendChild(item);
+                });
+                summary.append(heading, list);
+                summary.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                return;
+            }
+
+            if (response.status === 403) {
+                throw new Error('You do not have permission to add a property with this account. Switch to the correct Admin/Broker mode or contact an Admin.');
+            }
+            if (!response.ok) throw new Error('Unable to save the property. Please try again.');
+            if (window.ljsLoadAdminPage) await window.ljsLoadAdminPage(response.url);
+            else window.location.assign(response.url);
+        } catch (error) {
+            window.showToast?.(error.message || 'Unable to save the property. Please try again.', 'error');
+        } finally {
+            if (submitter?.isConnected) {
+                submitter.disabled = false;
+                submitter.innerHTML = previousLabel;
+                window.lucide?.createIcons();
+            }
         }
     });
 
     applyRequirements();
-});
+};
+document.addEventListener('DOMContentLoaded', initializeAddPropertyPage);

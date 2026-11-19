@@ -5,6 +5,7 @@
             @if ($panelMode ?? false)<input type="hidden" name="panel" value="1">@endif
             <label class="visually-hidden" for="threadSearch">Search messages</label>
             <input id="threadSearch" type="search" name="q" value="{{ request('q') }}" maxlength="100" placeholder="Search people, properties, or messages">
+            <button type="submit" class="thread-search-submit" aria-label="Search messages"><i data-lucide="search" aria-hidden="true"></i></button>
         </form>
         <div class="threads-container">
             @forelse ($conversations as $item)

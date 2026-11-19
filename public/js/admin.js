@@ -1,5 +1,9 @@
 // ADMN PROPERTY
-document.addEventListener('DOMContentLoaded', function () {
+const initializeAdminPropertyPage = function () {
+    const root = document.querySelector('[data-page-context="properties"]');
+    if (!root || root.dataset.adminPropertyInitialized) return;
+    root.dataset.adminPropertyInitialized = 'true';
+
     const propertySearch = document.getElementById('propertySearch');
     const propertyStatusFilter = document.getElementById('propertyStatusFilter');
     const propertyCards = document.querySelectorAll('[data-property-card]');
@@ -17,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
             card.hidden = !visible;
             if (visible) visibleCount += 1;
         });
-
         if (propertyEmptyRow) propertyEmptyRow.hidden = visibleCount > 0;
     }
 
@@ -58,4 +61,5 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('click', (e) => { 
         if (e.target === modal) { modal.style.display = 'none'; }
     });
-});
+};
+document.addEventListener('DOMContentLoaded', initializeAdminPropertyPage);

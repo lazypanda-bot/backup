@@ -51,7 +51,10 @@ class MessagingSearchAttachmentTest extends TestCase
         ]);
 
         $unreadResponse = $this->actingAs($client)->get(route('messages.inbox', ['status' => 'unread']));
-        $unreadResponse->assertOk()->assertSee('needle property question')->assertDontSee('other topic');
+        $unreadResponse->assertOk()
+            ->assertSee('needle property question')
+            ->assertSee('class="thread-search-submit"', false)
+            ->assertDontSee('other topic');
 
         $search = $this->get(route('messages.inbox', ['q' => 'needle']));
         $search->assertOk()->assertSee('needle property question')->assertDontSee('other topic')->assertDontSee('needle secret thread');

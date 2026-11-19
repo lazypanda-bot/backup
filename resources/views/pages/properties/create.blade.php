@@ -37,7 +37,7 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" class="property-create-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
+        <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" class="property-create-form" data-no-confirm data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
             @csrf
             <section class="property-create-section" aria-labelledby="createPhotosHeading">
                 <div class="property-create-section-title"><span>01</span><div><h2 id="createPhotosHeading">Property photos</h2><p>Add up to 12 JPG, PNG, or WebP images (2 MB each).</p></div></div>

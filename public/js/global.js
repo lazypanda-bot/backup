@@ -702,6 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (notificationButtons.length) {
         window.setInterval(refreshNotificationCounts, 10000);
         window.refreshNotificationCounts = refreshNotificationCounts;
+        refreshNotificationCounts();
     }
 
     const clientMessagesButton = document.getElementById('clientMessagesButton');
@@ -766,6 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.setInterval(refreshMessageCounts, 10000);
         window.refreshMessageCounts = refreshMessageCounts;
+        refreshMessageCounts();
     }
 
     [

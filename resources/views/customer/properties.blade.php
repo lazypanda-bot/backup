@@ -155,8 +155,6 @@
         if (!form || !results) return;
 
         let activeRequest;
-        let searchTimer;
-
         const loadResults = async (url, updateHistory = true) => {
             activeRequest?.abort();
             const request = new AbortController();
@@ -218,18 +216,7 @@
             submitFilters();
         });
 
-        const autoSubmitFields = form.querySelectorAll('select, input[name="search"]');
-        autoSubmitFields.forEach((field) => {
-            if (field.matches('select')) {
-                field.addEventListener('change', submitFilters);
-                return;
-            }
-
-            field.addEventListener('input', () => {
-                window.clearTimeout(searchTimer);
-                searchTimer = window.setTimeout(submitFilters, 600);
-            });
-        });
+        form.querySelectorAll('select').forEach((field) => field.addEventListener('change', submitFilters));
 
         results.addEventListener('click', (event) => {
             const link = event.target.closest('a[href]');

@@ -47,7 +47,6 @@
         <script src="{{ asset('js/dashboard.js') }}" defer></script>
         <script src="{{ asset('js/admin.js') }}" defer></script>
         <script src="{{ asset('js/addproperty.js') }}" defer></script>
-
         <script src="{{ asset('js/page-context.js') }}?v={{ filemtime(public_path('js/page-context.js')) }}" defer></script>
         @stack('scripts')
     </body>

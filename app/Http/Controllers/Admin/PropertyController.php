@@ -551,8 +551,12 @@ class PropertyController extends Controller
     private function authorizeLister(): void
     {
         $user = Auth::user();
-
-        abort_unless($user instanceof User && in_array($user->actingRole(), ['admin', 'broker', 'agent'], true), 403);
+        abort_unless(
+            $user instanceof User
+                && in_array($user->normalizedRole(), ['admin', 'broker', 'agent', 'lead_broker'], true),
+            403,
+            'Only property listers can add properties.'
+        );
     }
 
     // VIEW DETAILS

@@ -1,10 +1,11 @@
-document.addEventListener('DOMContentLoaded', function () {
+const initializeDashboardCalendar = function () {
     const blockDateModal = document.getElementById('blockDateModal');
     document.getElementById('openBlockDateModal')?.addEventListener('click', () => blockDateModal?.classList.add('open'));
     document.getElementById('closeBlockDateModal')?.addEventListener('click', () => blockDateModal?.classList.remove('open'));
 
     const calendarDates = document.getElementById('calendarDates');
-    if (!calendarDates) return;
+    if (!calendarDates || calendarDates.dataset.dashboardInitialized) return;
+    calendarDates.dataset.dashboardInitialized = 'true';
 
     let appointments = [];
     let blockedDates = [];
@@ -112,7 +113,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!cell.contains(customTooltip)) cell.appendChild(customTooltip);
         }
     });
-});
+};
+document.addEventListener('DOMContentLoaded', initializeDashboardCalendar);
 // Block only complete viewing intervals; blank start/end means the whole day.
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.block-date-dialog');
