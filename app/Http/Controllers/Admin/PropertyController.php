@@ -54,6 +54,7 @@ class PropertyController extends Controller
             'featured' => ['nullable', 'boolean'],
             'images.*' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
+        $this->rejectDuplicateSubmission($validated);
 
         $isAdminLister = $authenticatedUser->actingRole() === 'admin';
         $lifestyleTags = $validated['lifestyle_tags'] ?? array_filter(explode(',', $validated['lifestyle_tag'] ?? ''));
@@ -68,6 +69,8 @@ class PropertyController extends Controller
         $createdPropertyId = null;
         try {
             DB::transaction(function () use ($request, $validated, $authenticatedUser, $isAdminLister, $lifestyleTagValue, $locationTagValue, $amenityNames, &$storedImagePaths, &$createdPropertyId): void {
+                User::query()->whereKey($authenticatedUser->user_id)->lockForUpdate()->firstOrFail();
+                $this->rejectDuplicateSubmission($validated);
                 $propertyStatus = $this->normalizeStatus($validated['property_status']);
                 $property = Property::create([
                     'user_id' => $authenticatedUser->user_id,
@@ -136,6 +139,11 @@ class PropertyController extends Controller
                     NotificationService::listingLive($property, $authenticatedUser);
                 }
             });
+        } catch (ValidationException $exception) {
+            foreach ($storedImagePaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+            throw $exception;
         } catch (\Throwable $exception) {
             foreach ($storedImagePaths as $path) {
                 Storage::disk('public')->delete($path);
@@ -178,6 +186,22 @@ class PropertyController extends Controller
             'Unavailable' => 'Unavailable',
             default => 'For Sale', // fallback
         };
+    }
+
+    private function rejectDuplicateSubmission(array $values, ?int $exceptId = null): void
+    {
+        $duplicate = Property::duplicateQuery($values)
+            ->when($exceptId, fn ($query) => $query->whereKeyNot($exceptId))
+            ->first();
+
+        if (! $duplicate) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'property_name' => Property::DUPLICATE_REJECTION_REASON . '. This property is already '
+                . ($duplicate->approval_status === 'Pending' ? 'waiting for Admin approval.' : 'listed.'),
+        ]);
     }
 
     // GENERATING REF CODE
@@ -270,7 +294,7 @@ class PropertyController extends Controller
             }
         }
 
-        $approvedListings = DB::transaction(function () use ($property, $isRejected, $validated, $rejectionNote, $user) {
+        DB::transaction(function () use ($property, $isRejected, $validated, $rejectionNote, $user) {
             $listings = collect([$property]);
             if (! $isRejected) {
                 $listings = Property::query()
@@ -288,23 +312,26 @@ class PropertyController extends Controller
                 }
             }
 
-            $listings->each(function (Property $listing) use ($validated, $rejectionNote, $user): void {
+            $listings->each(function (Property $listing) use ($property, $validated, $rejectionNote, $user): void {
+                $isSelected = (int) $listing->property_id === (int) $property->property_id;
+                $status = $validated['approval_status'] === 'Approved' && ! $isSelected
+                    ? 'Rejected'
+                    : $validated['approval_status'];
                 $listing->update([
-                    'approval_status' => $validated['approval_status'],
-                    'rejection_note' => $rejectionNote,
-                    'approved_by' => $validated['approval_status'] === 'Approved' ? $user->user_id : null,
-                    'approved_at' => $validated['approval_status'] === 'Approved' ? now() : null,
+                    'approval_status' => $status,
+                    'rejection_note' => $status === 'Rejected' && ! $isSelected
+                        ? Property::DUPLICATE_REJECTION_REASON
+                        : $rejectionNote,
+                    'approved_by' => $status === 'Approved' ? $user->user_id : null,
+                    'approved_at' => $status === 'Approved' ? now() : null,
                 ]);
             });
-
-            return $listings;
         });
 
         $referralCode = null;
         if (! $isRejected && $property->listing_mode !== 'admin') {
             $lister = $property->user;
             if ($lister instanceof User && in_array($lister->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)) {
-                $approvedListings->each(fn (Property $listing) => $this->referralCodeFor($listing, $lister));
                 $referralCode = $this->referralCodeFor($property, $lister);
             }
         }
@@ -427,6 +454,7 @@ class PropertyController extends Controller
             'images' => ['nullable', 'array', 'max:12'],
             'images.*' => ['image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
+        $this->rejectDuplicateSubmission($validated, $property->property_id);
         $this->ensureSoldStatusIsLocked($property, $validated['property_status']);
 
         $imagesToRemove = $property->images()->whereIn('image_id', $validated['remove_images'] ?? [])->get();

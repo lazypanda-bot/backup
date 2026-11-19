@@ -103,6 +103,24 @@ class Property extends Model
         return in_array($status, ['For Rent', 'Rent to Own'], true) ? 'Per Month' : 'Full Price';
     }
 
+    public static function normalizedDuplicateValue(?string $value): string
+    {
+        return strtolower(trim((string) preg_replace('/\s+/', ' ', (string) $value)));
+    }
+
+    public static function duplicateQuery(array $values)
+    {
+        return static::query()
+            ->whereIn('approval_status', ['Pending', 'Approved'])
+            ->whereRaw('LOWER(TRIM(property_name)) = ?', [static::normalizedDuplicateValue($values['property_name'] ?? null)])
+            ->whereRaw('LOWER(TRIM(street)) = ?', [static::normalizedDuplicateValue($values['street'] ?? null)])
+            ->whereRaw('LOWER(TRIM(city)) = ?', [static::normalizedDuplicateValue($values['city'] ?? null)])
+            ->whereRaw('LOWER(TRIM(province)) = ?', [static::normalizedDuplicateValue($values['province'] ?? null)])
+            ->when(filled($values['house_number'] ?? null),
+                fn ($query) => $query->whereRaw("LOWER(TRIM(COALESCE(house_number, ''))) = ?", [static::normalizedDuplicateValue($values['house_number'])])
+            );
+    }
+
     public function priceSuffix(): string
     {
         return static::priceTypeForStatus($this->property_status) === 'Per Month' ? '/month' : '';

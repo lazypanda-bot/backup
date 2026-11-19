@@ -88,15 +88,53 @@ class PropertyApprovalReferralTest extends TestCase
             ->assertRedirect(route('properties.show', ['id' => $property->property_id, 'ref' => $code->code]));
     }
 
-    public function test_approving_one_duplicate_submission_syncs_matching_pending_rows(): void
+    public function test_duplicate_active_or_pending_property_cannot_be_saved_again(): void
     {
         $professional = User::factory()->create(['role_name' => 'Agent']);
-        $admin = User::factory()->create(['role_name' => 'Admin']);
-        $duplicates = collect(range(1, 3))->map(fn () => Property::create([
+        Property::create([
             'user_id' => $professional->user_id,
             'property_name' => 'Duplicate Review Home',
             'property_type' => 'House & Lot',
             'street' => '1 Review Road',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 5000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Pending',
+            'listing_mode' => 'professional',
+        ]);
+
+        $this->actingAs($professional)
+            ->post(route('admin.properties.store'), [
+                'property_name' => '  duplicate review home ',
+                'property_type' => 'House & Lot',
+                'description' => 'Duplicate attempt.',
+                'street' => ' 1 Review Road ',
+                'city' => 'Cebu City',
+                'province' => 'Cebu',
+                'price' => 5000000,
+                'property_status' => 'For Sale',
+                'lot_area' => 120,
+                'floor_area' => 90,
+                'bedrooms' => 3,
+                'bathrooms' => 2,
+            ])
+            ->assertSessionHasErrors('property_name');
+
+        $this->assertSame(1, Property::query()
+            ->where('property_name', 'Duplicate Review Home')
+            ->count());
+    }
+
+    public function test_approving_a_legacy_duplicate_rejects_the_other_pending_copies(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $duplicates = collect(range(1, 2))->map(fn () => Property::create([
+            'user_id' => $professional->user_id,
+            'property_name' => 'Legacy Duplicate Home',
+            'property_type' => 'House & Lot',
+            'street' => '1 Legacy Road',
             'city' => 'Cebu City',
             'province' => 'Cebu',
             'price' => 5000000,
@@ -109,11 +147,9 @@ class PropertyApprovalReferralTest extends TestCase
             ->post(route('admin.properties.review', $duplicates->first()), ['approval_status' => 'Approved'])
             ->assertRedirect();
 
-        $this->assertSame(3, Property::query()
-            ->whereIn('property_id', $duplicates->pluck('property_id'))
-            ->where('approval_status', 'Approved')
-            ->where('approved_by', $admin->user_id)
-            ->count());
+        $this->assertSame('Approved', $duplicates->first()->fresh()->approval_status);
+        $this->assertSame('Rejected', $duplicates->last()->fresh()->approval_status);
+        $this->assertSame(Property::DUPLICATE_REJECTION_REASON, $duplicates->last()->fresh()->rejection_note);
     }
 
     public function test_rejection_requires_and_persists_a_reason(): void
