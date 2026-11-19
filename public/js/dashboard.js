@@ -100,10 +100,13 @@ const initializeDashboardCalendar = function () {
                 badgeContainer.appendChild(badge);
                 cell.classList.add('calendar-cell-blocked');
 
-                const reason = blocked.reason || '';
+                const rawReason = String(blocked.reason || '').trim();
+                const reason = /^all day$/i.test(rawReason) ? 'Whole day' : rawReason;
                 const startTime = blocked.start_time ? formatTime(blocked.start_time) : 'Whole day';
                 const endTime = blocked.end_time ? ` - ${formatTime(blocked.end_time)}` : '';
-                badge.textContent = reason || `${startTime}${endTime}`;
+                badge.textContent = reason && !blocked.start_time && /^whole day$/i.test(reason)
+                    ? 'Whole day'
+                    : (reason || `${startTime}${endTime}`);
                 const blockedLine = document.createElement('div');
                 blockedLine.textContent = reason
                     ? `${reason} · ${startTime}${endTime}`
