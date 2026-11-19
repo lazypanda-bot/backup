@@ -216,6 +216,11 @@
             submitFilters();
         });
 
+        const searchInput = form.querySelector('input[name="search"]');
+        searchInput?.addEventListener('input', () => {
+            if (searchInput.value.trim() === '') submitFilters();
+        });
+
         form.querySelectorAll('select').forEach((field) => field.addEventListener('change', submitFilters));
 
         results.addEventListener('click', (event) => {

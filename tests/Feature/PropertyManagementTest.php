@@ -121,6 +121,7 @@ class PropertyManagementTest extends TestCase
             ->assertSee('value="5m-10m" selected', false)
             ->assertSee('value="price_high" selected', false)
             ->assertDontSee('setTimeout(submitFilters', false)
+            ->assertSee("if (searchInput.value.trim() === '') submitFilters();", false)
             ->assertSee('id="propertyFilterStatus"', false);
     }
 
