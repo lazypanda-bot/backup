@@ -43,6 +43,29 @@ class PropertyApprovalReferralTest extends TestCase
             ->assertSee('Reject');
     }
 
+    public function test_legacy_approved_listing_explains_when_approver_was_not_recorded(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        Property::create([
+            'user_id' => $professional->user_id,
+            'property_name' => 'Previously Approved Home',
+            'property_type' => 'House & Lot',
+            'street' => '1 Legacy Road',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 3000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Approved',
+            'listing_mode' => 'professional',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('app.page', ['page' => 'property']))
+            ->assertOk()
+            ->assertSee('Approved before audit tracking');
+    }
+
     public function test_professional_listing_stays_pending_until_admin_approves_and_then_gets_a_referral_code(): void
     {
         Http::fake();

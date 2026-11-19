@@ -148,6 +148,9 @@
                             @if ($property->approved_by)
                                 {{ $property->approver?->name ?? 'Administrator' }}
                                 @if ($property->approved_at)<small class="staff-property-role">{{ $property->approved_at->format('M j, Y') }}</small>@endif
+                            @elseif ($property->approval_status === 'Approved')
+                                <span class="staff-unassigned">Not recorded</span>
+                                <small class="staff-property-role">Approved before audit tracking</small>
                             @else
                                 <span class="staff-unassigned">—</span>
                             @endif
