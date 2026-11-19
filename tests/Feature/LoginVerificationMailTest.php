@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Mail\LoginVerificationMail;
 use App\Mail\PasswordResetMail;
+use App\Mail\ActivityMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +15,18 @@ use Tests\TestCase;
 
 class LoginVerificationMailTest extends TestCase
 {
+    public function test_activity_email_reuses_the_branded_email_layout(): void
+    {
+        $mail = new ActivityMail('Property update', "Your property was updated.\nPlease sign in to review it.");
+        $html = $mail->render();
+
+        $this->assertStringContainsString('font-family: Georgia', $html);
+        $this->assertStringContainsString('LJS Realty &amp; Brokerage', $html);
+        $this->assertStringContainsString('Your property was updated.', $html);
+        $this->assertSame(1, substr_count($html, 'data:image/jpeg;base64,'));
+        $mail->assertSeeInText('Please sign in to review it.');
+    }
+
     public function test_password_reset_email_matches_the_branded_verification_style(): void
     {
         $mail = new PasswordResetMail('654321');

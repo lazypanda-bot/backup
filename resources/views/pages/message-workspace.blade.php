@@ -7,8 +7,8 @@
             <div class="thread-search-control">
                 <i class="thread-search-icon" data-lucide="search" aria-hidden="true"></i>
                 <input id="threadSearch" type="search" name="q" value="{{ request('q') }}" maxlength="100" placeholder="Search conversations">
-                <button type="submit" class="thread-search-submit" aria-label="Search messages">
-                    <span>Search</span>
+                <button type="submit" class="thread-search-submit" aria-label="Search messages" title="Search">
+                    <i data-lucide="search" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

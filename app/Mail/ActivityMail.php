@@ -35,7 +35,10 @@ class ActivityMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
-        return new Content(view: 'emails.activity');
+        return new Content(
+            view: 'emails.activity',
+            text: 'emails.activity-text',
+        );
     }
 
     public function attachments(): array
