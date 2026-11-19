@@ -419,13 +419,32 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
                     ->where(fn ($query) => $query->whereNull('acting_role')->orWhere('acting_role', '!=', 'admin')))
                 ->with('user')
                 ->get()
-                ->map(fn ($blocked) => [
-                    'date' => $blocked->date instanceof \DateTimeInterface ? $blocked->date->format('Y-m-d') : substr((string) $blocked->date, 0, 10),
-                    'start_time' => $blocked->start_time,
-                    'end_time' => $blocked->end_time,
-                    'reason' => $blocked->reason,
-                    'blocked_by' => $blocked->user?->name,
-                ]);
+                ->groupBy(fn ($blocked) => $blocked->date instanceof \DateTimeInterface ? $blocked->date->format('Y-m-d') : substr((string) $blocked->date, 0, 10))
+                ->map(function ($blocks, $date) {
+                    $wholeDay = $blocks->first(fn ($block) => blank($block->start_time) || blank($block->end_time));
+                    $hasMorning = $blocks->contains(fn ($block) => substr((string) $block->start_time, 0, 5) === '08:00' && substr((string) $block->end_time, 0, 5) === '12:00');
+                    $hasAfternoon = $blocks->contains(fn ($block) => substr((string) $block->start_time, 0, 5) === '13:00' && substr((string) $block->end_time, 0, 5) === '17:00');
+
+                    if ($wholeDay || ($hasMorning && $hasAfternoon)) {
+                        return [
+                            'date' => $date,
+                            'start_time' => null,
+                            'end_time' => null,
+                            'reason' => $blocks->pluck('reason')->filter()->unique()->implode('; '),
+                            'blocked_by' => $blocks->first()?->user?->name,
+                        ];
+                    }
+
+                    return $blocks->map(fn ($blocked) => [
+                        'date' => $date,
+                        'start_time' => $blocked->start_time,
+                        'end_time' => $blocked->end_time,
+                        'reason' => $blocked->reason,
+                        'blocked_by' => $blocked->user?->name,
+                    ])->all();
+                })
+                ->flatMap(fn ($blocks) => isset($blocks['date']) ? [$blocks] : $blocks)
+                ->values();
         $recentActivities = \App\Models\AppNotification::visibleTo($user)
             ->latest()
             ->take(5)

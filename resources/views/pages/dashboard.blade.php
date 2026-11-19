@@ -222,11 +222,12 @@
     </div>
 
     <div class="block-date-modal" id="blockDateModal" aria-hidden="true">
-        <form method="POST" action="{{ route('appointments.block-date') }}" class="block-date-dialog">
+        <form method="POST" action="{{ route('appointments.block-date') }}" class="block-date-dialog" data-blocked-dates='@json($calendarBlockedDates ?? [])'>
             @csrf
             <input type="hidden" name="timezone" value="{{ auth()->user()?->timezone ?? config('appointments.default_timezone') }}">
             <div class="block-date-dialog-header"><h2>Block a date</h2><button type="button" id="closeBlockDateModal" aria-label="Close">&times;</button></div>
             <label>Date<input type="date" name="date" min="{{ now()->toDateString() }}" required></label>
+            <small class="block-date-availability" role="status" aria-live="polite"></small>
             {{-- <label>Start time<input type="time" name="start_time"></label>
             <label>End time<input type="time" name="end_time"></label>
             --}}

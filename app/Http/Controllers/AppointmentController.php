@@ -528,7 +528,7 @@ class AppointmentController extends Controller
 
         $blockingTimes = $scheduling->blockingTimes();
         $validated = $request->validate([
-            'date' => ['required', 'date'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
             'time_slot' => ['nullable', \Illuminate\Validation\Rule::in(['whole_day', 'morning', 'afternoon'])],
             // Previous unrestricted time validation:
             // 'start_time' => ['nullable', 'date_format:H:i'],
@@ -554,15 +554,53 @@ class AppointmentController extends Controller
             unset($validated['time_slot']);
         }
 
-        // 1. Create the blocked date/time record
 		// Previous fallback assumed the optional timezone key was always present:
 		// $validated['timezone'] = $validated['timezone'] ?: ($user->timezone ?: config('appointments.default_timezone'));
 		$validated['timezone'] = ($validated['timezone'] ?? null) ?: ($user->timezone ?: config('appointments.default_timezone'));
+        $validated['start_time'] ??= null;
+        $validated['end_time'] ??= null;
 		$validated['acting_role'] = $user->actingRole();
+        $existingBlocks = $user->blockedDates()
+            ->whereDate('date', $validated['date'])
+            ->where(function ($query) use ($user) {
+                $query->where('acting_role', $user->actingRole())
+                    ->when($user->actingRole() === 'admin', fn ($scope) => $scope
+                        ->orWhereNull('acting_role'));
+            })
+            ->get();
+
+        if ($existingBlocks->contains(fn ($block) => blank($block->start_time) || blank($block->end_time))) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'date' => 'This date is already blocked for the whole day.',
+            ]);
+        }
+
+        $requestedRange = ($validated['start_time'] ?? null) . '-' . ($validated['end_time'] ?? null);
+        if ($validated['start_time'] && $existingBlocks->contains(fn ($block) => substr((string) $block->start_time, 0, 5) . '-' . substr((string) $block->end_time, 0, 5) === $requestedRange)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'time_slot' => 'That time range is already blocked.',
+            ]);
+        }
+
+        $hasMorning = $existingBlocks->contains(fn ($block) => substr((string) $block->start_time, 0, 5) === '08:00' && substr((string) $block->end_time, 0, 5) === '12:00');
+        $hasAfternoon = $existingBlocks->contains(fn ($block) => substr((string) $block->start_time, 0, 5) === '13:00' && substr((string) $block->end_time, 0, 5) === '17:00');
+        $completesWholeDay = ($hasMorning && $requestedRange === '13:00-17:00')
+            || ($hasAfternoon && $requestedRange === '08:00-12:00');
+
+        if (! $validated['start_time'] || $completesWholeDay) {
+            $previousReason = $existingBlocks->pluck('reason')->filter()->implode('; ');
+            $validated['start_time'] = null;
+            $validated['end_time'] = null;
+            $validated['reason'] = collect([$validated['reason'] ?? null, $previousReason])
+                ->filter()
+                ->unique()
+                ->implode('; ');
+            $existingBlocks->each->delete();
+        }
 		$user->blockedDates()->create($validated);
 
         // 2. Format details for the notification body
-        $timeInfo = !empty($validated['start_time']) 
+        $timeInfo = !empty($validated['start_time'])
             ? ' from ' . $validated['start_time'] . ' to ' . ($validated['end_time'] ?? 'onwards') 
             : ' for the whole day';
             

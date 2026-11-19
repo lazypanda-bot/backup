@@ -115,6 +115,43 @@ class AppointmentHoursAndEmailTest extends TestCase
         $this->actingAs($client)->postJson(route('appointments.block-date'), ['date' => $date])->assertForbidden();
     }
 
+    public function test_blocking_both_periods_consolidates_to_one_whole_day_block(): void
+    {
+        Mail::fake();
+        [$owner, , $assignment] = $this->listing();
+        $date = now('Asia/Manila')->addDays(7)->toDateString();
+
+        $this->actingAs($owner)
+            ->post(route('appointments.block-date'), [
+                'date' => $date,
+                'time_slot' => 'morning',
+                'reason' => 'Personal morning',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->post(route('appointments.block-date'), [
+            'date' => $date,
+            'time_slot' => 'afternoon',
+            'reason' => 'Personal afternoon',
+        ])->assertSessionHasNoErrors();
+
+        $blocks = \App\Models\BlockedDate::query()
+            ->where('user_id', $owner->user_id)
+            ->whereDate('date', $date)
+            ->get();
+        $this->assertCount(1, $blocks);
+        $this->assertNull($blocks->first()->start_time);
+        $this->assertNull($blocks->first()->end_time);
+        $this->assertStringContainsString('Personal morning', $blocks->first()->reason);
+        $this->assertStringContainsString('Personal afternoon', $blocks->first()->reason);
+        $this->assertSame([], app(AppointmentSchedulingService::class)->availableSlots($assignment, $date, 'Asia/Manila'));
+
+        $this->post(route('appointments.block-date'), [
+            'date' => $date,
+            'time_slot' => 'morning',
+        ])->assertSessionHasErrors('date');
+    }
+
     public function test_confirmation_email_contains_viewing_details_and_contacts_without_a_website_link(): void
     {
         Mail::fake();

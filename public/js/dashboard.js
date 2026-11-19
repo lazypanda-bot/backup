@@ -44,6 +44,7 @@ const initializeDashboardCalendar = function () {
 
         const dayAppointments = appointments.filter((app) => String(app.preferred_date).slice(0, 10) === dateString);
         const dayBlockedDates = blockedDates.filter((blocked) => String(blocked.date).slice(0, 10) === dateString);
+        const fullyBlocked = dayBlockedDates.some((blocked) => !blocked.start_time || !blocked.end_time);
         const formatTime = (value) => {
             if (!value) return '';
             const [hours, minutes] = String(value).split(':').map(Number);
@@ -110,27 +111,68 @@ const initializeDashboardCalendar = function () {
                 customTooltip.appendChild(blockedLine);
             });
 
+            if (fullyBlocked) {
+                cell.classList.add('calendar-cell-fully-blocked');
+                cell.setAttribute('aria-disabled', 'true');
+            }
             if (!cell.contains(customTooltip)) cell.appendChild(customTooltip);
         }
     });
 };
 document.addEventListener('DOMContentLoaded', initializeDashboardCalendar);
-// Block only complete viewing intervals; blank start/end means the whole day.
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.block-date-dialog');
-    const start = form?.querySelector('[name="start_time"]');
-    const end = form?.querySelector('[name="end_time"]');
-    if (!start || !end) return;
-    const updateTimes = () => {
-        [...end.options].forEach((option) => {
-            option.disabled = Boolean(option.value && start.value && option.value <= start.value);
+    const dateInput = form?.querySelector('[name="date"]');
+    const slotSelect = form?.querySelector('[name="time_slot"]');
+    const status = form?.querySelector('.block-date-availability');
+    if (!form || !dateInput || !slotSelect) return;
+
+    let blockedDates = [];
+    try {
+        blockedDates = JSON.parse(form.dataset.blockedDates || '[]');
+    } catch (error) {
+        console.error('Unable to parse blocked date ranges.', error);
+    }
+
+    const updateAvailability = () => {
+        const selectedDate = dateInput.value;
+        const blocks = blockedDates.filter((blocked) => String(blocked.date).slice(0, 10) === selectedDate);
+        const wholeDay = blocks.some((blocked) => !blocked.start_time || !blocked.end_time);
+        const morning = blocks.some((blocked) => String(blocked.start_time).slice(0, 5) === '08:00');
+        const afternoon = blocks.some((blocked) => String(blocked.start_time).slice(0, 5) === '13:00');
+
+        [...slotSelect.options].forEach((option) => {
+            option.disabled = wholeDay
+                || (option.value === 'morning' && morning)
+                || (option.value === 'afternoon' && afternoon);
         });
-        if (end.selectedOptions[0]?.disabled) end.value = '';
-        start.required = Boolean(end.value);
-        end.required = Boolean(start.value);
+
+        dateInput.classList.toggle('is-blocked', wholeDay);
+        dateInput.setCustomValidity(wholeDay ? 'This date is already blocked for the whole day.' : '');
+        if (wholeDay) {
+            dateInput.value = '';
+            slotSelect.value = '';
+            slotSelect.disabled = true;
+            if (status) status.textContent = 'Whole day already blocked. Choose another date.';
+            return;
+        }
+
+        slotSelect.disabled = false;
+        if (slotSelect.selectedOptions[0]?.disabled) slotSelect.value = '';
+        if (morning && afternoon) {
+            dateInput.setCustomValidity('Morning and afternoon are already blocked. Choose another date.');
+            dateInput.classList.add('is-blocked');
+            if (status) status.textContent = 'Whole day already blocked. Choose another date.';
+        } else if (status) {
+            status.textContent = morning
+                ? 'Morning is already blocked; afternoon is available.'
+                : afternoon
+                    ? 'Afternoon is already blocked; morning is available.'
+                    : '';
+        }
     };
-    start.addEventListener('change', updateTimes);
-    end.addEventListener('change', updateTimes);
-    form.addEventListener('reset', () => queueMicrotask(updateTimes));
-    updateTimes();
+
+    dateInput.addEventListener('change', updateAvailability);
+    form.addEventListener('reset', () => queueMicrotask(updateAvailability));
+    updateAvailability();
 });

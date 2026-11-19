@@ -319,6 +319,25 @@
     white-space: nowrap;
 }
 .calendar-cell-blocked { background: #fff1f2; border-color: #fda4af; }
+.calendar-cell-fully-blocked {
+    cursor: not-allowed;
+    opacity: .58;
+    background: #e5e7eb !important;
+    border-color: #cbd5e1 !important;
+}
+.block-date-availability {
+    display: block;
+    min-height: 18px;
+    margin-top: -4px;
+    color: #b91c1c;
+    font-size: 12px;
+}
+.block-date-dialog input.is-blocked {
+    border-color: #94a3b8;
+    background: #e5e7eb;
+    color: #64748b;
+    cursor: not-allowed;
+}
 .dash-sidebar {
     display: flex;
     flex-direction: column;
