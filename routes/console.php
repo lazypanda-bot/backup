@@ -33,3 +33,23 @@ Artisan::command('messages:secure-attachments', function () {
 })->purpose('Move existing message attachments from public storage to private storage');
 
 Schedule::command('appointments:send-reminders')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('accounts:deactivate-inactive')->daily()->withoutOverlapping();
+
+Artisan::command('accounts:deactivate-inactive', function (\App\Services\AccountStatusService $accountStatus) {
+    $count = 0;
+    \App\Models\User::query()
+        ->where('account_status', 'Active')
+        ->where('role_name', '!=', 'Admin')
+        ->where(function ($query) {
+            $query->where('last_active_at', '<=', now()->subDays(7))
+                ->orWhereNull('last_active_at');
+        })
+        ->chunkById(100, function ($users) use ($accountStatus, &$count) {
+            foreach ($users as $user) {
+                $accountStatus->deactivateForInactivity($user);
+                $count++;
+            }
+        }, 'user_id');
+
+    $this->info("Deactivated {$count} inactive account(s).");
+})->purpose('Deactivate accounts with no activity for seven days');

@@ -31,6 +31,7 @@ class User extends Authenticatable
         'account_status',
         'role_name',
         'timezone',
+        'last_active_at',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_active_at' => 'datetime',
         ];
     }
 

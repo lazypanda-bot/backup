@@ -102,6 +102,7 @@ class AuthController extends Controller
 
         $user = User::findOrFail($request->session()->get('login_otp_user_id'));
         Auth::login($user, (bool) $request->session()->get('login_otp_remember'));
+        $user->forceFill(['last_active_at' => now()])->saveQuietly();
         $request->session()->forget(['login_otp_user_id', 'login_otp_hash', 'login_otp_expires_at', 'login_otp_remember', 'login_otp_attempts']);
         $request->session()->regenerate();
 

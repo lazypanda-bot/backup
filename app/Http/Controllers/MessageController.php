@@ -459,9 +459,6 @@ class MessageController extends Controller
                 $participant->update(['hidden_at' => null]);
             }
             AppNotification::create(['user_id' => $recipientId, 'type' => 'message', 'title' => 'New message from ' . $sender->name, 'body' => str($body)->limit(120), 'url' => route('messages.inbox', ['conversation' => $conversation->conversation_id])]);
-            // Previous per-message email delivery retained for reference.
-            // Chat updates remain available in the in-app inbox and notifications.
-            /*
             if ($participant->user) {
                 $emailPreview = trim(preg_replace('~https?://\S+~iu', '', $body));
                 Mail::to($participant->user->email, $participant->user->name)->queue(new ActivityMail(
@@ -469,7 +466,6 @@ class MessageController extends Controller
                     str($emailPreview)->limit(120)->toString() . "\n\nOpen Messages in LJS Realty to reply."
                 ));
             }
-            */
         });
     }
 

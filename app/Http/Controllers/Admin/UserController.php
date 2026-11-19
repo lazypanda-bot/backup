@@ -167,7 +167,7 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user, \App\Services\AccountStatusService $accountStatus)
     {
         $this->authorizeAdmin();
         $actor = Auth::user();
@@ -190,7 +190,9 @@ class UserController extends Controller
             throw ValidationException::withMessages(['account_status' => 'You cannot change your own account status.']);
         }
 
+        $previousStatus = $user->account_status;
         $user->update($validated);
+        $accountStatus->notifyStatusChange($user, $previousStatus);
 
         return redirect()->route('admin.users.index')->with('success', $user->name . ' is now ' . strtolower($validated['account_status']) . '.');
     }

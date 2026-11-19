@@ -182,7 +182,7 @@ class AppointmentHoursAndEmailTest extends TestCase
             && $this->hasConfirmationDetails($mail->messageBody, $owner, $appointment->fresh()));
     }
 
-    public function test_repeated_chat_messages_keep_in_app_notifications_without_sending_emails(): void
+    public function test_repeated_chat_messages_notify_recipients_in_app_and_by_email(): void
     {
         Mail::fake();
         foreach (['Client', 'Agent', 'Broker', 'Admin', 'Lead Broker'] as $role) {
@@ -198,7 +198,7 @@ class AppointmentHoursAndEmailTest extends TestCase
             $this->assertSame(3, ConversationMessage::where('conversation_id', $conversation->conversation_id)->count());
             $this->assertSame(3, AppNotification::where('user_id', $recipient->user_id)->where('type', 'message')->count());
         }
-        Mail::assertNothingOutgoing();
+        Mail::assertQueued(ActivityMail::class, 15);
     }
 
     public function test_full_dates_close_automatically_across_listings_and_reopen_after_cancellation(): void

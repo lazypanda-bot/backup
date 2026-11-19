@@ -37,7 +37,11 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // Previous registration: $middleware->web(append: [\App\Http\Middleware\PreventAuthenticatedPageCaching::class]);
-        $middleware->web(append: [\App\Http\Middleware\PreventAuthenticatedPageCaching::class, \App\Http\Middleware\PreservePageContext::class]);
+        $middleware->web(append: [
+            \App\Http\Middleware\PreventAuthenticatedPageCaching::class,
+            \App\Http\Middleware\TrackUserActivity::class,
+            \App\Http\Middleware\PreservePageContext::class,
+        ]);
         $middleware->redirectGuestsTo(function () {
             session()->flash('auth_modal_error', true);
 
