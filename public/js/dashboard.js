@@ -89,7 +89,9 @@ const initializeDashboardCalendar = function () {
                 badgeContainer.appendChild(badge);
 
                 const appointmentLine = document.createElement('div');
-                appointmentLine.textContent = formatTime(app.preferred_time) || 'Appointment';
+                const clientName = String(app.contact_name || '').trim() || 'Client';
+                const appointmentTime = formatTime(app.preferred_time) || 'Appointment';
+                appointmentLine.textContent = `${clientName} · ${appointmentTime}`;
                 customTooltip.appendChild(appointmentLine);
             });
 
