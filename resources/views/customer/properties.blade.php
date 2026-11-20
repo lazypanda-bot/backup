@@ -72,7 +72,8 @@
                 <div class="search-box">
                     <input type="text" name="search" placeholder="Search properties, locations.." value="{{ request('search') }}">
                     <button type="submit" aria-label="Search">
-                        <i data-lucide="search" aria-hidden="true"></i>                        </button>
+                        <i data-lucide="search" aria-hidden="true"></i>
+                    </button>
                 </div>
             </div>
         </form>

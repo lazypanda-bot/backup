@@ -11,24 +11,14 @@ class AppNotification extends Model
 
     protected $fillable = ['user_id', 'type', 'audience', 'title', 'body', 'url', 'appointment_proposal_id', 'appointment_id', 'read_at'];
 
-    /**
-     * Only the viewer's own notifications. A Lead Broker's feed depends on the mode:
-     * admin mode = oversight (system) events plus messages; broker mode = personal events.
-     */
+    // ONLY THE NOTIFICATIONS VISIBLE TO GIVEN USER. LEAD BROKER'S VIEW DEPENDS ON ACTING ROLE.
     public function scopeVisibleTo($query, User $user)
     {
         $role = $user->normalizedRole();
 
         if ($role === 'broker') {
-            $teamUserIds = TeamMember::query()
-                ->whereHas('team', fn ($teamQuery) => $teamQuery->where('user_id', $user->user_id))
-                ->pluck('user_id')
-                ->all();
-
-            $candidateUserIds = array_values(array_unique(array_merge([$user->user_id], $teamUserIds)));
-
             return $query
-                ->whereIn('app_notifications.user_id', $candidateUserIds)
+                ->where('app_notifications.user_id', $user->user_id)
                 ->where('audience', '!=', 'system');
         }
 
@@ -42,15 +32,8 @@ class AppNotification extends Model
                     });
             }
 
-            $teamUserIds = TeamMember::query()
-                ->whereHas('team', fn ($teamQuery) => $teamQuery->where('user_id', $user->user_id))
-                ->pluck('user_id')
-                ->all();
-
-            $candidateUserIds = array_values(array_unique(array_merge([$user->user_id], $teamUserIds)));
-
             return $query
-                ->whereIn('app_notifications.user_id', $candidateUserIds)
+                ->where('app_notifications.user_id', $user->user_id)
                 ->where('audience', '!=', 'system');
         }
 

@@ -100,7 +100,7 @@ class RoleScopedNotificationsTest extends TestCase
             ->assertDontSee('Open related item');
     }
 
-    public function test_broker_sees_team_and_own_notifications_but_not_system_events(): void
+    public function test_broker_only_sees_own_notifications_and_not_team_or_system_events(): void
     {
         $broker = User::factory()->create(['role_name' => 'Broker']);
         $agent = User::factory()->create(['role_name' => 'Agent']);
@@ -114,10 +114,10 @@ class RoleScopedNotificationsTest extends TestCase
         $this->actingAs($broker)
             ->get(route('notifications.index'))
             ->assertSee('Broker own listing')
-            ->assertSee('Team agent listing')
+            ->assertDontSee('Team agent listing')
             ->assertDontSee('System oversight');
 
-        $this->get(route('notifications.count'))->assertJson(['count' => 2]);
+        $this->get(route('notifications.count'))->assertJson(['count' => 1]);
     }
 
     public function test_agent_only_sees_own_notifications(): void
@@ -139,8 +139,12 @@ class RoleScopedNotificationsTest extends TestCase
     public function test_lead_broker_feed_is_separated_by_mode(): void
     {
         $lead = User::factory()->create(['role_name' => 'Lead Broker']);
+        $teamAgent = User::factory()->create(['role_name' => 'Agent']);
+        $team = Team::create(['user_id' => $lead->user_id, 'team_name' => 'Lead team']);
+        TeamMember::create(['team_id' => $team->team_id, 'user_id' => $teamAgent->user_id, 'status' => 'Approved']);
         $otherLead = User::factory()->create(['role_name' => 'Lead Broker']);
         $this->note($lead, ['title' => 'Personal appointment']);
+        $this->note($teamAgent, ['title' => 'Team member appointment']);
         $this->note($lead, ['title' => 'Oversight event', 'audience' => 'system']);
         $this->note($lead, ['title' => 'Inbox message', 'type' => 'message']);
         $this->note($otherLead, ['title' => 'Another user oversight', 'audience' => 'system']);
@@ -150,6 +154,7 @@ class RoleScopedNotificationsTest extends TestCase
             ->get(route('notifications.index'))
             ->assertSee('Personal appointment')
             ->assertSee('Inbox message')
+            ->assertDontSee('Team member appointment')
             ->assertDontSee('Oversight event');
         $this->get(route('notifications.count'))->assertJson(['count' => 2]);
 

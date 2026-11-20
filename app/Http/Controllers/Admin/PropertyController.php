@@ -529,6 +529,15 @@ class PropertyController extends Controller
         if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
             $cancelledAppointments = $saleAppointments->cancelUpcomingAppointments($property);
             NotificationService::soldReviewPrompts($property);
+            NotificationService::oversight([
+                'type' => 'listing',
+                'title' => 'Project listing sold',
+                'body' => $property->property_name . ' was marked as Sold.'
+                    . ($cancelledAppointments > 0
+                        ? " {$cancelledAppointments} upcoming appointment(s) were automatically cancelled and emailed to the participants."
+                        : ''),
+                'url' => route('staff.properties.show', $property),
+            ], $user);
         }
 
         if ($needsApprovalAfterEdit) {
@@ -574,6 +583,15 @@ class PropertyController extends Controller
         if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
             $cancelledAppointments = $saleAppointments->cancelUpcomingAppointments($property);
             NotificationService::soldReviewPrompts($property);
+            NotificationService::oversight([
+                'type' => 'listing',
+                'title' => 'Project listing sold',
+                'body' => $property->property_name . ' was marked as Sold.'
+                    . ($cancelledAppointments > 0
+                        ? " {$cancelledAppointments} upcoming appointment(s) were automatically cancelled and emailed to the participants."
+                        : ''),
+                'url' => route('staff.properties.show', $property),
+            ], $user);
         }
 
         $successMessage = 'Property status updated.';

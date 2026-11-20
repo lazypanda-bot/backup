@@ -149,7 +149,7 @@
                 <label class="property-choice property-feature-choice"><input type="checkbox" name="featured" value="1" @checked(old('featured'))><span>Feature this listing on the home page</span></label>
             </section>
 
-            <footer class="property-create-actions"><a href="{{ route('app.page', ['page' => $propertyIndexPage]) }}">Cancel</a><button type="submit" class="btn-save"><i class="fas fa-check" aria-hidden="true"></i> Save Property</button></footer>
+            <footer class="property-create-actions"><a href="{{ route('app.page', ['page' => $propertyIndexPage]) }}">Cancel</a><button type="submit" class="btn-save"><i class="fas fa-check" aria-hidden="true"></i>Submit Property</button></footer>
         </form>
     </div>
 @endsection

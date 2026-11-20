@@ -440,6 +440,7 @@ class AppointmentSchedulingTest extends TestCase
     {
         Mail::fake();
         $admin = User::factory()->create(['role_name' => 'Admin']);
+        $reviewingAdmin = User::factory()->create(['role_name' => 'Admin']);
         $client = User::factory()->create(['role_name' => 'Client']);
         [$property, $assignment] = $this->createAssignment($admin, 'Sold admin listing');
         $property->update(['listing_mode' => 'admin']);
@@ -453,6 +454,11 @@ class AppointmentSchedulingTest extends TestCase
         Mail::assertQueued(ActivityMail::class, 2);
         Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($client->email));
         Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($admin->email));
+        $this->assertDatabaseHas('app_notifications', [
+            'user_id' => $reviewingAdmin->user_id,
+            'audience' => 'system',
+            'title' => 'Project listing sold',
+        ]);
     }
 
     public function test_editing_a_property_to_sold_also_cancels_its_upcoming_appointments(): void
