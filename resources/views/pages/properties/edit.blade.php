@@ -98,7 +98,7 @@
                 @if ($property->images->isEmpty())
                     <p class="property-edit-no-images">No photos uploaded yet.</p>
                 @endif
-                <div class="property-edit-gallery">
+                <div class="property-edit-gallery" data-existing-image-count="{{ $property->images->count() }}">
                     @foreach ($property->images as $image)
                         <label class="property-edit-image"><img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $property->property_name }} photo"><span><input type="checkbox" name="remove_images[]" value="{{ $image->image_id }}"> Remove</span></label>
                     @endforeach

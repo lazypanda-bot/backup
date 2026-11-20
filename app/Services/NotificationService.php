@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
+use App\Mail\ActivityMail;
 use App\Models\AppNotification;
 use App\Models\Appointment;
 use App\Models\Property;
+use App\Models\ReferralCode;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class NotificationService
 {
@@ -80,6 +84,39 @@ class NotificationService
             });
     }
 
+    public static function projectListingSold(Property $property, int $cancelledAppointments = 0): void
+    {
+        if ($property->listing_mode !== 'admin') {
+            return;
+        }
+
+        $title = 'Project listing sold';
+        $body = $property->property_name . ' was marked as Sold.'
+            . ($cancelledAppointments > 0
+                ? " {$cancelledAppointments} upcoming appointment(s) were automatically cancelled."
+                : '');
+
+        User::query()
+            ->where('account_status', 'Active')
+            ->whereIn('role_name', ['Admin', 'Lead Broker', 'Broker', 'Agent'])
+            ->get()
+            ->each(function (User $recipient) use ($property, $title, $body): void {
+                AppNotification::create([
+                    'user_id' => $recipient->user_id,
+                    'type' => 'listing',
+                    'audience' => in_array($recipient->role_name, ['Admin', 'Lead Broker'], true) ? 'system' : 'personal',
+                    'title' => $title,
+                    'body' => $body,
+                    'url' => route('staff.properties.show', $property),
+                ]);
+
+                Mail::to($recipient->email, $recipient->name)->queue(new ActivityMail(
+                    $title . ': ' . $property->property_name,
+                    $body . "\n\nOpen LJS Realty to review the project listing and related appointments."
+                ));
+            });
+    }
+
     /**
      * Tell every active client (bell icon) and every active professional that a listing is live.
      * The lister and the acting user are skipped; admins receive the oversight copy instead.
@@ -95,20 +132,36 @@ class NotificationService
             ->where('account_status', 'Active')
             ->whereIn('role_name', ['Client', 'Broker', 'Agent', 'Lead Broker'])
             ->when($skip !== [], fn ($query) => $query->whereNotIn('user_id', $skip))
-            ->select(['user_id', 'role_name'])
+            ->select(['user_id', 'name', 'email', 'role_name'])
             ->chunkById(500, function ($users) use ($property, $now, $title, $body): void {
-                $rows = $users->map(fn (User $user) => [
-                    'user_id' => $user->user_id,
-                    'type' => 'listing',
-                    'audience' => 'personal',
-                    'title' => $title,
-                    'body' => $body,
-                    'url' => $user->role_name === 'Client'
-                        ? route('properties.show', $property)
-                        : route('staff.properties.show', $property),
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ])->all();
+                $rows = $users->map(function (User $user) use ($property, $now, $title, $body) {
+                    $referralCode = in_array($user->role_name, ['Broker', 'Agent', 'Lead Broker'], true)
+                        ? self::referralCodeFor($property, $user)
+                        : null;
+
+                    if ($referralCode) {
+                        Mail::to($user->email, $user->name)->queue(new ActivityMail(
+                            'New project listing: ' . $property->property_name,
+                            $body
+                                . "\n\nYour referral code: {$referralCode->code}"
+                                . "\nYour referral link: " . route('referrals.open', $referralCode->code)
+                                . "\n\nUse this code or link when sharing the listing with a potential client."
+                        ));
+                    }
+
+                    return [
+                        'user_id' => $user->user_id,
+                        'type' => 'listing',
+                        'audience' => 'personal',
+                        'title' => $title,
+                        'body' => $referralCode ? $body . ' Referral code: ' . $referralCode->code : $body,
+                        'url' => $user->role_name === 'Client'
+                            ? route('properties.show', $property)
+                            : route('staff.properties.show', $property),
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                })->all();
 
                 DB::table('app_notifications')->insert($rows);
             }, 'user_id');
@@ -119,5 +172,26 @@ class NotificationService
             'body' => $body,
             'url' => route('staff.properties.show', $property),
         ], $actor);
+    }
+
+    private static function referralCodeFor(Property $property, User $user): ReferralCode
+    {
+        $existing = ReferralCode::query()
+            ->where('property_id', $property->property_id)
+            ->where('user_id', $user->user_id)
+            ->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        do {
+            $code = 'LJS-' . strtoupper(Str::random(10));
+        } while (ReferralCode::query()->where('code', $code)->exists());
+
+        return ReferralCode::create([
+            'property_id' => $property->property_id,
+            'user_id' => $user->user_id,
+            'code' => $code,
+        ]);
     }
 }

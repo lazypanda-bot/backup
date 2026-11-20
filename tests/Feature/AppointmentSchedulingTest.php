@@ -441,6 +441,9 @@ class AppointmentSchedulingTest extends TestCase
         Mail::fake();
         $admin = User::factory()->create(['role_name' => 'Admin']);
         $reviewingAdmin = User::factory()->create(['role_name' => 'Admin']);
+        $leadBroker = User::factory()->create(['role_name' => 'Lead Broker']);
+        $broker = User::factory()->create(['role_name' => 'Broker']);
+        $agent = User::factory()->create(['role_name' => 'Agent']);
         $client = User::factory()->create(['role_name' => 'Client']);
         [$property, $assignment] = $this->createAssignment($admin, 'Sold admin listing');
         $property->update(['listing_mode' => 'admin']);
@@ -451,7 +454,7 @@ class AppointmentSchedulingTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame('Cancelled', $appointment->fresh()->appointment_status);
-        Mail::assertQueued(ActivityMail::class, 2);
+        Mail::assertQueued(ActivityMail::class, 7);
         Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($client->email));
         Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($admin->email));
         $this->assertDatabaseHas('app_notifications', [
@@ -459,6 +462,22 @@ class AppointmentSchedulingTest extends TestCase
             'audience' => 'system',
             'title' => 'Project listing sold',
         ]);
+        foreach ([$admin, $leadBroker] as $oversightUser) {
+            $this->assertDatabaseHas('app_notifications', [
+                'user_id' => $oversightUser->user_id,
+                'audience' => 'system',
+                'title' => 'Project listing sold',
+            ]);
+        }
+        foreach ([$broker, $agent] as $professional) {
+            $this->assertDatabaseHas('app_notifications', [
+                'user_id' => $professional->user_id,
+                'audience' => 'personal',
+                'title' => 'Project listing sold',
+            ]);
+            Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($professional->email)
+                && str_contains($mail->subjectLine, 'Project listing sold'));
+        }
     }
 
     public function test_editing_a_property_to_sold_also_cancels_its_upcoming_appointments(): void
@@ -497,7 +516,7 @@ class AppointmentSchedulingTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame('Cancelled', $appointment->fresh()->appointment_status);
-        Mail::assertQueued(ActivityMail::class, 2);
+        Mail::assertQueued(ActivityMail::class, 3);
     }
 
     public function test_confirmed_appointment_keeps_status_controls_until_a_terminal_status(): void

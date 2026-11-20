@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\AppNotification;
 use App\Models\Property;
+use App\Models\ReferralCode;
+use App\Mail\ActivityMail;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class RoleScopedNotificationsTest extends TestCase
@@ -184,9 +187,11 @@ class RoleScopedNotificationsTest extends TestCase
 
     public function test_new_live_listing_notifies_clients_staff_and_admin_oversight_but_not_the_lister(): void
     {
+        Mail::fake();
         $admin = User::factory()->create(['role_name' => 'Admin']);
         $client = User::factory()->create(['role_name' => 'Client']);
         $agent = User::factory()->create(['role_name' => 'Agent']);
+        $broker = User::factory()->create(['role_name' => 'Broker']);
         $lead = User::factory()->create(['role_name' => 'Lead Broker']);
         $property = Property::create([
             'user_id' => $agent->user_id,
@@ -211,5 +216,19 @@ class RoleScopedNotificationsTest extends TestCase
         $this->assertDatabaseHas('app_notifications', ['user_id' => $lead->user_id, 'title' => 'New property listing', 'audience' => 'system']);
         $this->assertDatabaseMissing('app_notifications', ['user_id' => $admin->user_id, 'title' => 'New property listing']);
         $this->assertDatabaseMissing('app_notifications', ['user_id' => $agent->user_id, 'title' => 'New property listing']);
+        foreach ([$broker, $lead] as $professional) {
+            $code = ReferralCode::query()
+                ->where('property_id', $property->property_id)
+                ->where('user_id', $professional->user_id)
+                ->firstOrFail();
+            $this->assertDatabaseHas('app_notifications', [
+                'user_id' => $professional->user_id,
+                'title' => 'New property listing',
+                'body' => 'Live Listing is now available. Referral code: ' . $code->code,
+            ]);
+            Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($professional->email)
+                && str_contains($mail->messageBody, $code->code));
+        }
+        Mail::assertNotQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->hasTo($client->email));
     }
 }

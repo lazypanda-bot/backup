@@ -432,6 +432,7 @@ class PropertyManagementTest extends TestCase
             ->assertSee('name="property_description"', false)
             ->assertSee('data-auto-grow', false)
             ->assertSee('name="lot_area"', false)
+            ->assertSee('data-existing-image-count="', false)
             ->assertSee('name="images[]"', false)
             ->assertSee('property-edit-add-image', false)
             ->assertSee('name="featured"', false)

@@ -1731,6 +1731,7 @@
     .home-about-content h2 { font-size: 28px; }
     .footer-logo { height: 40px; }
     .hero-section { min-height: 76vh; min-height: 76svh; padding: 96px 22px 40px; }
+    .hero-section::before { width: 94%; background: linear-gradient(105deg, rgba(255,255,255,.9), rgba(255,255,255,.68)); clip-path: polygon(0 0, 88% 0, 100% 100%, 0 100%); }
     .hero-content { max-width: 100%; }
     .map-search-section { padding: 24px var(--home-panel-gutter) 0; }
     .properties { padding: 84px 12px 44px; }
