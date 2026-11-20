@@ -15,7 +15,7 @@
         <div class="hero-content">
             <h1 class="hero-title">Find Your <span class="highlight">Dream</span> Property</h1>
             <p class="hero-subtitle">
-                At <strong>LJS Realty and Brokerage</strong>, finding your ideal home is easy.
+                At <strong class="strong">LJS Realty and Brokerage</strong>, finding your ideal home is easy.
                 Explore a wide selection of properties tailored to your lifestyle, preferences, and budget.
             </p>
             <a href="{{ route('properties') }}" class="hero-btn">Explore Now</a>
@@ -133,7 +133,6 @@
                                 </div>
                             </div>
 
-                            <!-- Card Body -->
                             <div class="rush-card-body">
                                 <div class="rush-price">
                                     ₱ {{ number_format($item->price, 0, '.', ',') }}<small>{{ $item->priceSuffix() }}</small>
@@ -149,14 +148,12 @@
 
                                 <hr class="rush-divider">
 
-                                <!-- Property Meta Details -->
                                 <div class="rush-meta">
                                     <span>{{ $item->details?->bedroom ?? 0 }} beds</span>
                                     <span>{{ $item->details?->bathroom ?? 0 }} baths</span>
                                     <span>{{ $item->details?->floor_area ?? 0 }} sqm</span>
                                 </div>
 
-                                <!-- Action Button -->
                                 <div class="rush-action">
                                     <a href="{{ route('properties.show', $item->property_id) }}" class="rush-btn">View Details</a>
                                 </div>
@@ -214,7 +211,6 @@
             <div class="home-about-image-wrapper">
                 <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Team and People" class="home-about-img">
             </div>
-
             <!-- Right Side: Content & Action -->
             <div class="home-about-content">
                 <h2>We <span class="highlight-green">find places</span> that people love</h2>
