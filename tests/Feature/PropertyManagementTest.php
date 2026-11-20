@@ -39,7 +39,7 @@ class PropertyManagementTest extends TestCase
             ->assertSee('Add a lifestyle tag')
             ->assertSee('Add a location preference')
             ->assertSee('data-no-confirm', false)
-            ->assertSee('Save Property')
+            ->assertSee('Submit Property')
             ->assertDontSee('name="price_type"', false)
             ->assertDontSee('Reference Code');
 

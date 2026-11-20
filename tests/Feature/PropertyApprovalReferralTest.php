@@ -103,6 +103,9 @@ class PropertyApprovalReferralTest extends TestCase
         $this->actingAs($professional)
             ->get(route('app.page', ['page' => 'listings']))
             ->assertOk()
+            ->assertSee('data-add-listing', false)
+            ->assertSee('id="listingStatusFilter"', false)
+            ->assertSee('hidden>', false)
             ->assertSee('Add Property')
             ->assertSee('My Listings')
             ->assertSee($code->code);

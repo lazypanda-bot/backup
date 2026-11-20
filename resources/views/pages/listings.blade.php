@@ -37,13 +37,13 @@
 				<i class="fas fa-search search-icon" aria-hidden="true"></i>
 				<input id="listingSearch" type="search" placeholder="Search listing, type, location, or ID">
 			</label>
-			<select id="listingStatusFilter" aria-label="Filter listings by approval status">
+			<select id="listingStatusFilter" aria-label="Filter listings by approval status" hidden>
 				<option value="">All approval status</option>
 				<option value="Approved">Approved</option>
 				<option value="Pending">Pending</option>
 				<option value="Rejected">Rejected</option>
 			</select>
-			<a href="{{ route('admin.subfiles.addproperty') }}" class="btn-add-property"><i class="fas fa-plus" aria-hidden="true"></i> Add Property</a>
+			<a href="{{ route('admin.subfiles.addproperty') }}" class="btn-add-property" data-add-listing><i class="fas fa-plus" aria-hidden="true"></i> Add Property</a>
 		</div>
 
 		<div class="au-table-container">
@@ -160,6 +160,7 @@
 			const searchInput = document.getElementById('listingSearch');
 			const statusFilter = document.getElementById('listingStatusFilter');
 			const groupButtons = Array.from(document.querySelectorAll('[data-listing-group-filter]'));
+			const addProperty = document.querySelector('[data-add-listing]');
 			const rows = Array.from(document.querySelectorAll('[data-listing-row]'));
 			const emptyRow = document.querySelector('[data-listing-empty]');
 			let activeGroup = groupButtons.find((button) => button.classList.contains('active'))?.dataset.listingGroupFilter || 'active';
@@ -194,9 +195,14 @@
 						item.classList.toggle('active', active);
 						item.setAttribute('aria-selected', active ? 'true' : 'false');
 					});
+					const showControls = activeGroup === 'active';
+					if (statusFilter) statusFilter.hidden = true;
+					if (addProperty) addProperty.hidden = !showControls;
 					applyListingFilters();
 				});
 			});
+			if (statusFilter) statusFilter.hidden = true;
+			if (addProperty) addProperty.hidden = activeGroup !== 'active';
 			applyListingFilters();
 
 		});
